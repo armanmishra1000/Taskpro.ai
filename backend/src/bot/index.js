@@ -8,6 +8,7 @@ const teamCallbacks = require('./callbacks/team.callbacks');
 const assignmentCallbacks = require('./callbacks/task-assignment.callbacks');
 const cardsCommand = require('./commands/cards.command');
 const mytasksCommand = require('./commands/mytasks.command');
+const dashboardCommand = require('./commands/dashboard.command');
 const taskCardsCallbacks = require('./callbacks/task-cards.callbacks');
 const blockerCallbacks = require('./callbacks/blocker-management.callbacks');
 const standupCommand = require('./commands/standup.command');
@@ -51,6 +52,7 @@ bot.onText(/\/help/, (msg) => {
     `/cards - View task cards with filters\n` +
     `/mytasks - View your assigned tasks\n` +
     `/team - Manage team members\n` +
+    `/dashboard - Manager dashboard with team overview\n` +
     `/standup - Configure daily standup automation\n` +
     `/standupnow - Trigger immediate standup test\n` +
     `/help - Show this help message\n\n` +
@@ -73,6 +75,9 @@ bot.onText(/\/cards/, (msg) => cardsCommand.handler(bot, msg));
 
 // /mytasks command
 bot.onText(/\/mytasks/, (msg) => mytasksCommand.handler(bot, msg));
+
+// /dashboard command
+bot.onText(/\/dashboard/, (msg) => dashboardCommand.handler(bot, msg));
 
 // /standup command
 bot.onText(/\/standup/, (msg) => standupCommand.handler(bot, msg));

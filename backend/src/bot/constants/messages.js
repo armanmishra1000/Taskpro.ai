@@ -52,6 +52,15 @@ module.exports = {
       CONFIG_SUCCESS: '✅ Standup automation configured successfully!',
       ENABLED: '🟢 Daily standup automation is now active.',
       DISABLED: '⚪ Daily standup automation has been disabled.'
+    },
+    
+    DASHBOARD: {
+      ACCESS_DENIED: '❌ *Dashboard Access Restricted*\n\nThis feature is only available to team managers and administrators.\n\nContact your team admin to request elevated permissions.',
+      NO_TEAM: '📊 *No Team Data Available*\n\nYou don\'t appear to be part of any active teams.\n\nUse /team to create or join a team first, then return to the dashboard.',
+      NO_DATA: '📊 *No Active Tasks Found*\n\nYour team is either:\n• All caught up with current work\n• Ready for new task assignments\n\nUse /newtask to create new tasks or check /cards for completed items.',
+      DATA_ERROR: '❌ I couldn\'t access the dashboard data.\nPlease ensure you have manager permissions and try again.',
+      REFRESH_SUCCESS: '✅ Dashboard data refreshed!\n\nUpdated: {timestamp}\nAll metrics reflect current team status.',
+      NAVIGATION_SUCCESS: '📊 Navigating to {section}...\nLoading latest data for your team.'
     }
   }
 }; 
