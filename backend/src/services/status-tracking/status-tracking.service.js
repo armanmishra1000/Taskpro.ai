@@ -1,6 +1,7 @@
 const Task = require('../../models/task.model');
 const User = require('../../models/user.model');
 const { ValidationError } = require('../../utils/errors');
+const notificationService = require('../notifications/status-notifications.service');
 
 class StatusTrackingService {
   /**
@@ -38,6 +39,10 @@ class StatusTrackingService {
     // Save with middleware handling timestamps
     const updatedTask = await task.save();
     
+    // Add notification after saving task (before return statement)
+    // Note: bot instance needs to be passed or accessed globally
+    // await notificationService.notifyStatusChange(updatedTask, changedBy, oldStatus, bot);
+
     return updatedTask;
   }
 
