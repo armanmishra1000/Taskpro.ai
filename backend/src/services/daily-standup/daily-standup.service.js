@@ -288,9 +288,9 @@ class DailyStandupService {
         date,
         status: 'pending',
         responses: {
-          yesterday: '',
-          today: '',
-          blockers: ''
+          yesterday: 'Pending response',
+          today: 'Pending response',
+          blockers: 'Pending response'
         }
       });
       
@@ -350,8 +350,10 @@ class DailyStandupService {
       standupResponse.responses[field] = response;
       standupResponse.submittedAt = new Date();
       
-      // Check if all questions are answered
-      const allAnswered = Object.values(standupResponse.responses).every(r => r.length >= 3);
+      // Check if all questions are answered (not placeholder values)
+      const allAnswered = Object.values(standupResponse.responses).every(r => 
+        r.length >= 3 && r !== 'Pending response'
+      );
       if (allAnswered) {
         standupResponse.status = 'submitted';
       }
