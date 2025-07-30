@@ -8,6 +8,7 @@ const teamCallbacks = require('./callbacks/team.callbacks');
 const assignmentCallbacks = require('./callbacks/task-assignment.callbacks');
 const cardsCommand = require('./commands/cards.command');
 const mytasksCommand = require('./commands/mytasks.command');
+const taskCardsCallbacks = require('./callbacks/task-cards.callbacks');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -95,6 +96,20 @@ bot.on('callback_query', async (query) => {
     }
     else if (action.startsWith('team_confirm_remove_')) {
       await teamCallbacks.handleConfirmRemoval(bot, query);
+    }
+
+    // Handle task cards dynamic callbacks first
+    if (action.startsWith('task_status_') || action.startsWith('task_blocked_') || action.startsWith('task_comment_')) {
+      const handled = await taskCardsCallbacks.handleDynamicCallback(bot, query);
+      if (handled) {
+        await bot.answerCallbackQuery(query.id);
+        return;
+      }
+    }
+
+    // Handle static task cards callbacks
+    if (taskCardsCallbacks[action]) {
+      await taskCardsCallbacks[action](bot, query);
     }
     
     await bot.answerCallbackQuery(query.id);
