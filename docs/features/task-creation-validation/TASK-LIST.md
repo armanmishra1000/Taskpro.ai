@@ -5,10 +5,10 @@
 - [x] B2: Create Bot Command Handler
 - [x] B3: Create Callback Query Handlers  
 - [x] B4: Create Service Layer
-- [ ] B5: Create Message Formatters
+- [x] B5: Create Message Formatters
 - [ ] B6: Integration Tests
 
-## Current Task: B5
+## Current Task: B6
 
 ## Task Details:
 - **B1**: Ensure Task model exists and has all required fields

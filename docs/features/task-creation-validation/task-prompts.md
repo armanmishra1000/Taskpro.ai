@@ -302,7 +302,7 @@ git commit -m "feat(task-creation): add callback query handlers"
 git push origin main
 ``` -->
 
-## Task B4: Service Layer
+<!-- ## Task B4: Service Layer
 
 **MANDATORY FIRST:**
 1. Read contracts in `shared/contracts/services/`
@@ -447,9 +447,9 @@ module.exports = new TaskCreationService();
 git add backend/src/services/
 git commit -m "feat(task-creation): add service layer with validation"
 git push origin main
-```
+``` -->
 
-## Task B5: Message Formatters
+<!-- ## Task B5: Message Formatters
 
 **MANDATORY FIRST:**
 1. Read `docs/features/task-creation-validation/messages.md`
@@ -572,7 +572,7 @@ module.exports = {
 git add backend/src/bot/formatters/
 git commit -m "feat(task-creation): add message formatters"
 git push origin main
-```
+``` -->
 
 ## Task B6: Integration Tests
 
