@@ -1,0 +1,22 @@
+{
+  "name": "taskpro.ai",
+  "version": "1.0.0",
+  "description": "> A sophisticated Telegram Task Management Bot using Elon Musk's delegation principles with AI-powered validation and automated development workflow.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.3.0",
+    "glob": "^11.0.3",
+    "inquirer": "^8.2.6"
+  }
+}

@@ -6,7 +6,7 @@
 - [x] B3: Create Callback Query Handlers  
 - [x] B4: Create Service Layer
 - [x] B5: Create Message Formatters
-- [ ] B6: Integration Tests
+- [x] B6: Integration Tests
 
 ## Current Task: B6
 
