@@ -89,6 +89,12 @@ taskSchema.index({ deadline: 1 });
 taskSchema.index({ teamId: 1 });
 taskSchema.index({ isDeleted: 1 });
 
+// Additional indexes for task assignment queries
+taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ status: 1, assignedTo: 1 });
+taskSchema.index({ teamId: 1, status: 1 });
+taskSchema.index({ teamId: 1, assignedTo: 1 });
+
 // Pre-save middleware to handle soft delete
 taskSchema.pre('save', function(next) {
   if (this.isDeleted && !this.deletedAt) {
