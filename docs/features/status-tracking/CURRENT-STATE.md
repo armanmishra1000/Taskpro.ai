@@ -20,8 +20,14 @@
 - **Dynamic Routing**: Enhanced dynamic callback handler routes all status-related callbacks
 - **ID Resolution**: Proper short ID to full ObjectId resolution for task lookups
 
+### ✅ Notification System (Task B4 Complete):
+- **Status Notification Service**: Created status-notifications.service.js with stakeholder identification
+- **Stakeholder Notifications**: Automatically notify assignee, creator, and team managers
+- **Formatted Messages**: Context-aware notification messages based on status and stakeholder type
+- **Action Buttons**: Notifications include View Task and View History buttons
+- **Integration Ready**: Service integrated into status tracking service (commented for bot instance)
+
 ### ❌ Still Missing Components:
-- **Notification System**: No notifications when status changes
 - **Progress Tracking**: No visual progress indicators beyond status icons
 
 ## Bot Commands:
@@ -54,14 +60,15 @@
 - `handleBlockerAdd`: Shows blocker details input prompt
 - `handleDynamicCallback`: Routes all status-related callbacks to appropriate handlers
 
-## Next Task: B4 - Add Status Change Notifications
-- Implement notification system for status changes
-- Send notifications to task assignee, creator, and team managers
-- Add notification preferences and settings
+## Next Task: B5 - Add Progress Tracking Indicators
+- Implement visual progress indicators for task completion
+- Add progress calculation based on status flow
+- Display progress bars and completion percentages
 
 ## Git Status:
 - Task B1 completed and committed: "feat(status-tracking): enhance Task model with statusHistory schema and validation"
 - Task B2 completed and committed: "feat(status-tracking): add status tracking service with validation and history logging"
 - Task B3 completed and committed: "feat(status-tracking): enhance callbacks with status change handling and history view"
-- Status tracking callback layer now properly implemented with comprehensive testing
-- Ready for notification system implementation
+- Task B4 completed and committed: "feat(status-tracking): add status notification service for stakeholder communication"
+- Status tracking notification system now implemented and ready for bot integration
+- Ready for progress tracking indicators implementation
