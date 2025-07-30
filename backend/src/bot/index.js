@@ -13,6 +13,7 @@ const taskCardsCallbacks = require('./callbacks/task-cards.callbacks');
 const blockerCallbacks = require('./callbacks/blocker-management.callbacks');
 const standupCommand = require('./commands/standup.command');
 const standupnowCommand = require('./commands/standupnow.command');
+const dashboardCallbacks = require('./callbacks/manager-dashboard.callbacks');
 const standupCallbacks = require('./callbacks/daily-standup.callbacks');
 const standupScheduler = require('../services/daily-standup/scheduler.service');
 require('dotenv').config();
@@ -146,6 +147,15 @@ bot.on('callback_query', async (query) => {
     if (action.startsWith('standup_')) {
       const handled = await standupCallbacks.handleDynamicCallback(bot, query);
       if (handled) {
+        await bot.answerCallbackQuery(query.id);
+        return;
+      }
+    }
+    
+    // Handle dashboard callbacks first
+    if (action.startsWith('dashboard_')) {
+      if (dashboardCallbacks[action]) {
+        await dashboardCallbacks[action](bot, query);
         await bot.answerCallbackQuery(query.id);
         return;
       }

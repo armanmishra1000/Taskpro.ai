@@ -224,6 +224,19 @@ class ManagerDashboardService {
       throw new Error('Failed to load overdue tasks data');
     }
   }
+
+  /**
+   * Get teams where user has manager permissions
+   */
+  async getTeamsForManager(userId) {
+    try {
+      const Team = require('../../models/team.model');
+      return await Team.getTeamsForManager(userId);
+    } catch (error) {
+      console.error('Error getting teams for manager:', error);
+      throw new Error('Failed to load team data');
+    }
+  }
 }
 
 module.exports = new ManagerDashboardService(); 
