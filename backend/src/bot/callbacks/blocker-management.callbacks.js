@@ -1,5 +1,6 @@
 const Task = require('../../models/task.model');
 const Team = require('../../models/team.model');
+const blockerService = require('../../services/blocker-management/blocker-management.service');
 
 // State storage for multi-step form (in-memory for now)
 const blockerForms = new Map();
@@ -139,21 +140,10 @@ const handleBlockerReport = async (bot, query) => {
     }
 
     // Check if task can have blockers
-    const validStatuses = ['ready', 'in_progress'];
-    if (!validStatuses.includes(task.status)) {
+    const canReport = await blockerService.canReportBlocker(task._id);
+    if (!canReport.canReport) {
       await bot.answerCallbackQuery(query.id, { 
-        text: `Cannot report blocker for ${task.status} tasks` 
-      });
-      return true;
-    }
-
-    // Check if there's already an active blocker
-    const hasActiveBlocker = task.blockers && 
-      task.blockers.some(b => b.status === 'active');
-    
-    if (hasActiveBlocker) {
-      await bot.answerCallbackQuery(query.id, { 
-        text: "Task already has an active blocker" 
+        text: canReport.reason 
       });
       return true;
     }
@@ -434,30 +424,16 @@ const handleTextInput = async (bot, msg) => {
 // Submit complete blocker report
 const submitBlockerReport = async (bot, msg, form) => {
   try {
-    // Get task details
-    const task = await Task.findById(form.taskId)
-      .populate('assignedTo', 'firstName lastName username')
-      .populate('createdBy', 'firstName lastName username')
-      .populate('teamId');
-
-    if (!task) {
-      throw new Error('Task not found');
-    }
-
-    // Create blocker object
-    const blocker = {
-      reportedBy: msg.from.id,
-      reportedAt: new Date(),
-      impact: form.impact,
-      attempts: form.attempts,
-      logs: form.logs,
-      status: 'active'
-    };
-
-    // Add blocker to task
-    task.blockers.push(blocker);
-    task.status = 'blocked';
-    await task.save();
+    // Use service to report blocker
+    const result = await blockerService.reportBlocker(
+      form.taskId,
+      { userId: msg.from.id, username: msg.from.username },
+      {
+        impact: form.impact,
+        attempts: form.attempts,
+        logs: form.logs
+      }
+    );
 
     // Clean up form state
     blockerForms.delete(msg.from.id);
@@ -469,18 +445,23 @@ const submitBlockerReport = async (bot, msg, form) => {
       'medium': '🟢'
     };
 
+    const managerName = result.manager ? 
+      `@${result.manager.username || 'Manager'}` : 
+      'Team Admin';
+
     const successMessage = `✅ Blocker Reported Successfully!
 
-📋 Task: ${task.title}
+📋 Task: ${result.task.title}
 👤 Reporter: @${msg.from.username || 'Unknown'}  
 📊 Impact: ${impactIcons[form.impact]} ${form.impact}
 🔄 Attempts: Documented
 📋 Evidence: Provided
 ⏰ Reported: ${new Date().toLocaleString()}
 
-🔔 Task status updated to: 🚧 Blocked
+🔔 ${managerName} has been notified
+📈 Task status updated to: 🚧 Blocked
 
-Your manager will be notified and respond soon.`;
+Your manager will review and respond soon.`;
 
     await bot.sendMessage(msg.chat.id, successMessage, { 
       parse_mode: 'Markdown',
@@ -489,13 +470,6 @@ Your manager will be notified and respond soon.`;
           [{ text: "⬅️ Back to Tasks", callback_data: "cards_back_filters" }]
         ]
       }
-    });
-
-    // TODO: Send notification to manager (will be implemented in B4)
-    console.log('Blocker reported successfully:', {
-      taskId: form.taskId,
-      reporter: msg.from.username,
-      impact: form.impact
     });
 
   } catch (error) {
