@@ -4,11 +4,11 @@
 - [x] B1: Create/Update Database Models
 - [x] B2: Create Bot Command Handler
 - [x] B3: Create Callback Query Handlers  
-- [ ] B4: Create Service Layer
+- [x] B4: Create Service Layer
 - [ ] B5: Create Message Formatters
 - [ ] B6: Integration Tests
 
-## Current Task: B4
+## Current Task: B5
 
 ## Task Details:
 - **B1**: Ensure Task model exists and has all required fields

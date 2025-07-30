@@ -15,6 +15,7 @@
 - ✅ Task model created with validation and tests
 - ✅ /newtask command handler created with tests
 - ✅ Callback query handlers created with tests
+- ✅ Service layer with AI parsing and validation created
 
 ## Bot Commands:
 - /start - Basic welcome message
@@ -31,7 +32,7 @@
 - UserContract - For user information (contract defined)
 
 ## Next Task: 
-B4 - Create Service Layer (use task-prompts.md)
+B5 - Create Message Formatters (use task-prompts.md)
 
 ## Documentation Created:
 - ✅ CURRENT-STATE.md - This file

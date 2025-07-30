@@ -167,7 +167,7 @@ git commit -m "feat(task-creation): add /newtask command handler"
 git push origin main
 ``` -->
 
-## Task B3: Callback Query Handlers
+<!-- ## Task B3: Callback Query Handlers
 
 **MANDATORY FIRST:**
 1. Read `docs/features/task-creation-validation/BOT-INTERACTIONS.md`
@@ -300,7 +300,7 @@ bot.on('callback_query', async (query) => {
 git add backend/src/bot/callbacks/
 git commit -m "feat(task-creation): add callback query handlers"
 git push origin main
-```
+``` -->
 
 ## Task B4: Service Layer
 
