@@ -23,6 +23,10 @@ standupResponseSchema.index({ teamId: 1, date: 1 });
 standupResponseSchema.index({ userId: 1, date: 1 });
 standupResponseSchema.index({ teamId: 1, userId: 1, date: 1 }, { unique: true });
 
+// Dashboard-specific indexes for team activity metrics
+standupResponseSchema.index({ teamId: 1, status: 1, date: 1 });
+standupResponseSchema.index({ teamId: 1, submittedAt: 1 });
+
 // Update editedAt timestamp when document is modified
 standupResponseSchema.pre('save', function(next) {
   if (this.isModified('responses')) {
@@ -30,5 +34,62 @@ standupResponseSchema.pre('save', function(next) {
   }
   next();
 });
+
+// Dashboard-specific static methods for team activity metrics
+standupResponseSchema.statics.getTeamActivityMetrics = async function(teamId, days = 7) {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  return this.aggregate([
+    {
+      $match: {
+        teamId,
+        date: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          status: '$status'
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $group: {
+        _id: '$_id.date',
+        statuses: {
+          $push: {
+            status: '$_id.status',
+            count: '$count'
+          }
+        },
+        totalResponses: { $sum: '$count' }
+      }
+    },
+    { $sort: { _id: -1 } }
+  ]);
+};
+
+standupResponseSchema.statics.getTeamParticipationRate = async function(teamId, date) {
+  const [responses, totalMembers] = await Promise.all([
+    this.countDocuments({ teamId, date, status: 'submitted' }),
+    this.countDocuments({ teamId, date })
+  ]);
+  
+  return {
+    submitted: responses,
+    total: totalMembers,
+    participationRate: totalMembers > 0 ? (responses / totalMembers * 100).toFixed(1) : 0
+  };
+};
+
+standupResponseSchema.statics.getRecentTeamActivity = function(teamId, limit = 10) {
+  return this.find({ teamId })
+    .populate('userId', 'firstName lastName username')
+    .sort({ submittedAt: -1 })
+    .limit(limit);
+};
 
 module.exports = mongoose.model('StandupResponse', standupResponseSchema); 

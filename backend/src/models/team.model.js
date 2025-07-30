@@ -59,10 +59,52 @@ teamSchema.index({ createdBy: 1 });
 teamSchema.index({ 'members.userId': 1 });
 teamSchema.index({ isDeleted: 1 });
 
+// Dashboard-specific indexes for manager queries
+teamSchema.index({ 'members.role': 1, isDeleted: 1 });
+teamSchema.index({ createdBy: 1, isDeleted: 1 });
+
 // Update timestamp middleware
 teamSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+
+// Dashboard-specific static methods for manager queries
+teamSchema.statics.getTeamsForManager = function(userId) {
+  return this.find({
+    $or: [
+      { createdBy: userId },
+      { 'members.userId': userId, 'members.role': { $in: ['manager', 'admin'] } }
+    ],
+    isDeleted: false
+  }).populate('members.userId', 'firstName lastName username role');
+};
+
+teamSchema.statics.getTeamMembers = function(teamId) {
+  return this.findById(teamId)
+    .populate('members.userId', 'firstName lastName username role isActive')
+    .select('members');
+};
+
+teamSchema.statics.getManagerTeams = function(userId) {
+  return this.find({
+    $or: [
+      { createdBy: userId },
+      { 'members.userId': userId, 'members.role': { $in: ['manager', 'admin'] } }
+    ],
+    isDeleted: false
+  }).select('_id name description members');
+};
+
+// Instance method to check if user is manager/admin
+teamSchema.methods.isUserManager = function(userId) {
+  const member = this.members.find(m => m.userId.toString() === userId.toString());
+  return member && ['manager', 'admin'].includes(member.role);
+};
+
+// Instance method to get active member count
+teamSchema.methods.getActiveMemberCount = function() {
+  return this.members.filter(member => member.role !== 'inactive').length;
+};
 
 module.exports = mongoose.model('Team', teamSchema); 

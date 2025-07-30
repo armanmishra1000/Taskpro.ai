@@ -60,7 +60,10 @@ userSchema.index({ isDeleted: 1 });
 
 // Compound indexes for common queries
 userSchema.index({ isActive: 1, role: 1 });
-userSchema.index({ isActive: 1, isDeleted: 1 });
+userSchema.index({ isDeleted: 1, isActive: 1 });
+
+// Dashboard-specific indexes for manager queries
+userSchema.index({ role: 1, isActive: 1, isDeleted: 1 });
 
 // Pre-save middleware to handle soft delete
 userSchema.pre('save', function(next) {
@@ -80,11 +83,40 @@ userSchema.statics.findByRole = function(role) {
   return this.find({ role, isActive: true, isDeleted: false });
 };
 
+// Dashboard-specific static methods for manager queries
+userSchema.statics.getManagersAndAdmins = function() {
+  return this.find({ 
+    role: { $in: ['manager', 'admin'] }, 
+    isActive: true, 
+    isDeleted: false 
+  }).select('firstName lastName username role');
+};
+
+userSchema.statics.getActiveTeamMembers = function(userIds) {
+  return this.find({
+    _id: { $in: userIds },
+    isActive: true,
+    isDeleted: false
+  }).select('firstName lastName username role');
+};
+
+userSchema.statics.getUserByIds = function(userIds) {
+  return this.find({
+    _id: { $in: userIds },
+    isDeleted: false
+  }).select('firstName lastName username role isActive');
+};
+
 // Instance method to soft delete
 userSchema.methods.softDelete = function() {
   this.isDeleted = true;
   this.deletedAt = new Date();
   return this.save();
+};
+
+// Instance method to check if user has manager permissions
+userSchema.methods.hasManagerPermissions = function() {
+  return ['manager', 'admin'].includes(this.role);
 };
 
 // Virtual for full name

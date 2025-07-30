@@ -184,6 +184,14 @@ taskSchema.index({ 'blockers.status': 1 });
 taskSchema.index({ 'blockers.reportedBy': 1 });
 taskSchema.index({ 'blockers.managerNotified': 1 });
 
+// Dashboard-specific indexes for manager queries
+taskSchema.index({ teamId: 1, status: 1, deadline: 1 });
+taskSchema.index({ teamId: 1, priority: 1, deadline: 1 });
+taskSchema.index({ teamId: 1, assignedTo: 1, status: 1 });
+taskSchema.index({ deadline: 1, status: 1, priority: 1 });
+taskSchema.index({ completedAt: 1, teamId: 1 });
+taskSchema.index({ startedAt: 1, teamId: 1 });
+
 // Pre-save middleware to handle soft delete
 taskSchema.pre('save', function(next) {
   if (this.isDeleted && !this.deletedAt) {
@@ -323,6 +331,155 @@ taskSchema.statics.isValidStatusTransition = function(fromStatus, toStatus) {
     'done': [] // Terminal status
   };
   return validTransitions[fromStatus]?.includes(toStatus) || false;
+};
+
+// Dashboard-specific static methods for manager queries
+taskSchema.statics.getTeamDashboardMetrics = async function(teamId) {
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  const [
+    activeTasks,
+    overdueTasks,
+    statusBreakdown,
+    priorityBreakdown,
+    recentCompleted,
+    velocityMetrics,
+    activeBlockers
+  ] = await Promise.all([
+    // Active tasks count
+    this.countDocuments({ 
+      teamId, 
+      isDeleted: false, 
+      status: { $nin: ['done'] } 
+    }),
+    
+    // Overdue tasks
+    this.countDocuments({ 
+      teamId, 
+      isDeleted: false, 
+      deadline: { $lt: now }, 
+      status: { $nin: ['done'] } 
+    }),
+    
+    // Status breakdown
+    this.aggregate([
+      { $match: { teamId, isDeleted: false, status: { $nin: ['done'] } } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]),
+    
+    // Priority breakdown
+    this.aggregate([
+      { $match: { teamId, isDeleted: false, status: { $nin: ['done'] } } },
+      { $group: { _id: '$priority', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]),
+    
+    // Recently completed tasks (last 30 days)
+    this.find({ 
+      teamId, 
+      isDeleted: false, 
+      status: 'done', 
+      completedAt: { $gte: thirtyDaysAgo } 
+    }).sort({ completedAt: -1 }).limit(10),
+    
+    // Velocity metrics (completion rate)
+    this.aggregate([
+      { 
+        $match: { 
+          teamId, 
+          isDeleted: false, 
+          completedAt: { $gte: thirtyDaysAgo } 
+        } 
+      },
+      { 
+        $group: { 
+          _id: null, 
+          totalCompleted: { $sum: 1 },
+          avgCompletionTime: { 
+            $avg: { 
+              $subtract: ['$completedAt', '$startedAt'] 
+            } 
+          }
+        } 
+      }
+    ]),
+    
+    // Active blockers
+    this.countDocuments({ 
+      teamId, 
+      isDeleted: false, 
+      'blockers.status': 'active' 
+    })
+  ]);
+  
+  return {
+    activeTasks,
+    overdueTasks,
+    statusBreakdown: statusBreakdown.reduce((acc, item) => {
+      acc[item._id] = item.count;
+      return acc;
+    }, {}),
+    priorityBreakdown: priorityBreakdown.reduce((acc, item) => {
+      acc[item._id] = item.count;
+      return acc;
+    }, {}),
+    recentCompleted,
+    velocityMetrics: velocityMetrics[0] || { totalCompleted: 0, avgCompletionTime: 0 },
+    activeBlockers
+  };
+};
+
+taskSchema.statics.getOverdueTasksForTeam = function(teamId, limit = 20) {
+  const now = new Date();
+  return this.find({
+    teamId,
+    isDeleted: false,
+    deadline: { $lt: now },
+    status: { $nin: ['done'] }
+  })
+  .populate('assignedTo', 'firstName lastName username')
+  .populate('createdBy', 'firstName lastName username')
+  .sort({ deadline: 1 })
+  .limit(limit);
+};
+
+taskSchema.statics.getTeamVelocityTrend = async function(teamId, days = 30) {
+  const now = new Date();
+  const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  
+  return this.aggregate([
+    {
+      $match: {
+        teamId,
+        isDeleted: false,
+        status: 'done',
+        completedAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: '%Y-%m-%d', date: '$completedAt' }
+        },
+        completed: { $sum: 1 }
+      }
+    },
+    { $sort: { _id: 1 } }
+  ]);
+};
+
+taskSchema.statics.getActiveBlockersForTeam = function(teamId) {
+  return this.find({
+    teamId,
+    isDeleted: false,
+    'blockers.status': 'active'
+  })
+  .populate('assignedTo', 'firstName lastName username')
+  .populate('blockers.reportedBy', 'firstName lastName username')
+  .select('title deadline assignedTo blockers')
+  .sort({ deadline: 1 });
 };
 
 module.exports = mongoose.model('Task', taskSchema); 
