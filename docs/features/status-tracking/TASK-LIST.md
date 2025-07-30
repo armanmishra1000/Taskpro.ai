@@ -5,7 +5,7 @@
 - [x] B2: Create Status Tracking Service - Business logic for status transitions  
 - [x] B3: Enhance Callback Query Handlers - Add status change logic and notifications
 - [x] B4: Create Status Notification System - Notify stakeholders of status changes
-- [ ] B5: Enhance Message Formatters - Add status history and progress indicators
+- [x] B5: Enhance Message Formatters - Add status history and progress indicators
 - [ ] B6: Integration Tests - Test status flows and notifications
 
 ## Task Details:
@@ -70,15 +70,22 @@
 - ✅ Comprehensive error handling (non-critical failures)
 - ✅ Stakeholder identification logic with proper filtering
 
-### B5: Enhance Message Formatters ✅ (Partially Complete)
-**Status**: Basic formatters exist, need enhancement
-**Files to modify**:
+### B5: Enhance Message Formatters ✅ (Complete)
+**Status**: Message formatters enhanced with comprehensive functionality
+**Files modified**:
 - `backend/src/bot/formatters/task-cards.formatter.js`
+- `backend/tests/bot/formatters/task-cards.formatter.test.js`
 
-**Add Functions**:
-- `formatStatusHistory()` - Show status change timeline
-- `formatStatusChangeNotification()` - Status change messages
-- `formatProgressIndicator()` - Visual progress tracking
+**Completed Requirements**:
+- ✅ Enhanced `formatStatusUpdate()` with professional status change messages
+- ✅ Added `formatStatusHistory()` for detailed chronological status timeline
+- ✅ Added `formatProgressIndicator()` with visual progress bars and percentages
+- ✅ Enhanced `formatDuration()` for human-readable time formatting
+- ✅ Added `getStatusSpecificMessage()` for context-aware status messages
+- ✅ Enhanced `createTaskActionKeyboard()` with proper callback data format
+- ✅ Added `calculateTotalDuration()` for status history calculations
+- ✅ Updated module exports to include all new formatter functions
+- ✅ Fixed test cases to match new callback data format
 
 ### B6: Integration Tests
 **Status**: Missing - needs implementation
@@ -99,7 +106,7 @@
 - B5 depends on B2 (service responses)
 - B6 depends on B1-B5 (all components)
 
-## Current Task: B5 (Enhance Message Formatters)
+## Current Task: B6 (Integration Tests)
 
 ## Estimated Completion:
 - B1: 1-2 hours (enhancement of existing model)

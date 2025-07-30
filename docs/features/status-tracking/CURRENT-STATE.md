@@ -27,8 +27,16 @@
 - **Action Buttons**: Notifications include View Task and View History buttons
 - **Integration Ready**: Service integrated into status tracking service (commented for bot instance)
 
+### ✅ Message Formatters (Task B5 Complete):
+- **Enhanced Status Update Formatter**: Professional status change messages with timestamps and user attribution
+- **Status History Formatter**: Detailed chronological status change timeline with durations and reasons
+- **Progress Indicator Formatter**: Visual progress bars and percentage indicators for task completion
+- **Enhanced Duration Formatter**: Human-readable duration formatting (days, hours, minutes)
+- **Status-Specific Messages**: Context-aware messages for each status transition
+- **Action Keyboard Enhancement**: Fixed callback data format and improved button layout
+
 ### ❌ Still Missing Components:
-- **Progress Tracking**: No visual progress indicators beyond status icons
+- **Integration Tests**: Comprehensive testing of status flows and notifications
 
 ## Bot Commands:
 - **Existing**: Status buttons appear in /cards task detail view
@@ -60,15 +68,17 @@
 - `handleBlockerAdd`: Shows blocker details input prompt
 - `handleDynamicCallback`: Routes all status-related callbacks to appropriate handlers
 
-## Next Task: B5 - Add Progress Tracking Indicators
-- Implement visual progress indicators for task completion
-- Add progress calculation based on status flow
-- Display progress bars and completion percentages
+## Next Task: B6 - Integration Tests
+- Implement comprehensive testing of status flows and notifications
+- Test status transition validation and business logic
+- Test notification system integration
+- Test formatter functions and message generation
 
 ## Git Status:
 - Task B1 completed and committed: "feat(status-tracking): enhance Task model with statusHistory schema and validation"
 - Task B2 completed and committed: "feat(status-tracking): add status tracking service with validation and history logging"
 - Task B3 completed and committed: "feat(status-tracking): enhance callbacks with status change handling and history view"
 - Task B4 completed and committed: "feat(status-tracking): add status notification service for stakeholder communication"
-- Status tracking notification system now implemented and ready for bot integration
-- Ready for progress tracking indicators implementation
+- Task B5 completed and committed: "feat(status-tracking): enhance formatters with status history and progress indicators"
+- Status tracking formatters now enhanced with comprehensive message formatting
+- Ready for integration testing implementation
