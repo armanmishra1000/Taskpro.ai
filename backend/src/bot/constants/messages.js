@@ -35,6 +35,15 @@ module.exports = {
       SUCCESS: '✅ Task Assigned Successfully!',
       CONFIRMATION: '🤔 Confirm Assignment',
       NOTIFICATION: '📬 New Task Assigned to You'
+    },
+    
+    BLOCKER: {
+      ATTEMPTS_PROMPT: '🔄 *What Have You Tried?*\n\nPlease describe your attempts to resolve this blocker:\n\n_(Minimum 20 characters required)_',
+      ATTEMPTS_TOO_SHORT: '❌ Description too short. Please provide at least 20 characters describing your attempts.',
+      LOGS_PROMPT: '📋 *Provide Evidence*\n\nPlease share proof of your attempts:\n\n_(Minimum 10 characters required)_',
+      LOGS_TOO_SHORT: '❌ Evidence too short. Please provide at least 10 characters of evidence.',
+      DUPLICATE_BLOCKER: '⚠️ *Blocker Already Reported*\n\nThis task already has an active blocker.\nContact your manager or wait for resolution.',
+      INVALID_STATUS: '❌ *Cannot Report Blocker*\n\nBlockers can only be reported for Ready or In Progress tasks.'
     }
   }
 }; 
