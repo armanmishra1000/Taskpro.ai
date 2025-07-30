@@ -1,6 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 const connectDB = require('../config/database');
 const newtaskCommand = require('./commands/newtask.command');
+const taskCallbacks = require('./callbacks/task-creation.callbacks');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -41,6 +42,15 @@ bot.onText(/\/help/, (msg) => {
 
 // /newtask command
 bot.onText(/\/newtask/, (msg) => newtaskCommand.handler(bot, msg));
+
+// Callback query handlers
+bot.on('callback_query', async (query) => {
+  const action = query.data;
+  if (taskCallbacks[action]) {
+    await taskCallbacks[action](bot, query);
+    await bot.answerCallbackQuery(query.id);
+  }
+});
 
 // Error handling
 bot.on('polling_error', (error) => {
