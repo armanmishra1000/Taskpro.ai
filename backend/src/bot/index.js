@@ -3,6 +3,7 @@ const connectDB = require('../config/database');
 const newtaskCommand = require('./commands/newtask.command');
 const teamCommand = require('./commands/team.command');
 const taskCallbacks = require('./callbacks/task-creation.callbacks');
+const teamCallbacks = require('./callbacks/team.callbacks');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -50,9 +51,39 @@ bot.onText(/\/team/, (msg) => teamCommand.handler(bot, msg));
 // Callback query handlers
 bot.on('callback_query', async (query) => {
   const action = query.data;
-  if (taskCallbacks[action]) {
-    await taskCallbacks[action](bot, query);
+  
+  try {
+    // Handle task callbacks
+    if (taskCallbacks[action]) {
+      await taskCallbacks[action](bot, query);
+    }
+    // Handle team callbacks
+    else if (teamCallbacks[action]) {
+      await teamCallbacks[action](bot, query);
+    }
+    // Handle dynamic team callbacks
+    else if (action.startsWith('team_remove_') && !action.includes('confirm')) {
+      await teamCallbacks.handleMemberRemoval(bot, query);
+    }
+    else if (action.startsWith('team_confirm_remove_')) {
+      await teamCallbacks.handleConfirmRemoval(bot, query);
+    }
+    
     await bot.answerCallbackQuery(query.id);
+  } catch (error) {
+    console.error('Callback query error:', error);
+    await bot.answerCallbackQuery(query.id, { text: 'Error processing request' });
+  }
+});
+
+// Text message handler for team member input
+bot.on('message', async (msg) => {
+  if (msg.text && !msg.text.startsWith('/')) {
+    // Simple state check - in production, implement proper user state storage
+    // For now, handle team member format
+    if (msg.text.includes('@') && (msg.text.includes('member') || msg.text.includes('manager') || msg.text.includes('admin'))) {
+      await teamCallbacks.handleMemberInput(bot, msg);
+    }
   }
 });
 
