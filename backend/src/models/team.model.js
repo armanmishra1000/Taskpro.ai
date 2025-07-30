@@ -33,6 +33,19 @@ const teamSchema = new mongoose.Schema({
     allowMemberInvite: { type: Boolean, default: true },
     requireApproval: { type: Boolean, default: false }
   },
+  standupConfig: {
+    enabled: { type: Boolean, default: false },
+    scheduleTime: { 
+      type: String, 
+      match: /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/ // HH:MM format
+    },
+    timezone: { type: String, default: 'UTC' },
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    channelId: { type: String },
+    reminderEnabled: { type: Boolean, default: true },
+    lastRun: { type: Date },
+    responseTimeout: { type: Number, default: 120 } // minutes
+  },
   
   // Base model fields
   createdAt: { type: Date, default: Date.now },
