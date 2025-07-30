@@ -12,6 +12,7 @@ const taskCardsCallbacks = require('./callbacks/task-cards.callbacks');
 const blockerCallbacks = require('./callbacks/blocker-management.callbacks');
 const standupCommand = require('./commands/standup.command');
 const standupnowCommand = require('./commands/standupnow.command');
+const standupCallbacks = require('./callbacks/daily-standup.callbacks');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -132,6 +133,20 @@ bot.on('callback_query', async (query) => {
       await taskCardsCallbacks[action](bot, query);
     }
     
+    // Handle standup callbacks first
+    if (action.startsWith('standup_')) {
+      const handled = await standupCallbacks.handleDynamicCallback(bot, query);
+      if (handled) {
+        await bot.answerCallbackQuery(query.id);
+        return;
+      }
+    }
+    
+    // Handle static standup callbacks
+    if (standupCallbacks[action]) {
+      await standupCallbacks[action](bot, query);
+    }
+    
     await bot.answerCallbackQuery(query.id);
   } catch (error) {
     console.error('Callback query error:', error);
@@ -146,6 +161,12 @@ bot.on('message', async (msg) => {
     const handled = await blockerCallbacks.handleTextInput(bot, msg);
     if (handled) {
       return; // Exit if blocker form handled the message
+    }
+    
+    // Handle standup text input first
+    const standupHandled = await standupCallbacks.handleTextInput(bot, msg);
+    if (standupHandled) {
+      return; // Exit if standup form handled the message
     }
     
     // Handle team member format
