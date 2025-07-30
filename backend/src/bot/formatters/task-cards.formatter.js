@@ -154,7 +154,16 @@ const formatTaskList = (tasks, filter, pagination) => {
   return `${header}\n\n${taskList}${footer}`;
 };
 
-const createTaskActionKeyboard = (taskId, currentStatus) => {
+// Helper function to check if blocker button should show
+const shouldShowBlockerButton = (task) => {
+  const validStatuses = ['ready', 'in_progress'];
+  const hasActiveBlocker = task.blockers && 
+    task.blockers.some(b => b.status === 'active');
+  
+  return validStatuses.includes(task.status) && !hasActiveBlocker;
+};
+
+const createTaskActionKeyboard = (taskId, currentStatus, task = null) => {
   const shortId = taskId.toString().slice(-6);
   
   // Base action buttons available for all statuses
@@ -166,12 +175,20 @@ const createTaskActionKeyboard = (taskId, currentStatus) => {
     [
       { text: "👀 Review", callback_data: `task_status_review_${shortId}` },
       { text: "✔️ Done", callback_data: `task_status_done_${shortId}` }
-    ],
-    [
-      { text: "🚧 Blocked", callback_data: `blocker_add_${shortId}` },
-      { text: "📊 History", callback_data: `status_history_${shortId}` }
     ]
   ];
+  
+  // Add blocker button if conditions are met
+  if (task && shouldShowBlockerButton(task)) {
+    actionButtons.push([
+      { text: "🚧 Blocker", callback_data: `blocker_report_${shortId}` },
+      { text: "📊 History", callback_data: `status_history_${shortId}` }
+    ]);
+  } else {
+    actionButtons.push([
+      { text: "📊 History", callback_data: `status_history_${shortId}` }
+    ]);
+  }
   
   // Disable current status button by changing style
   actionButtons.forEach(row => {
@@ -357,6 +374,7 @@ module.exports = {
   formatProgressIndicator, // New function
   formatDuration, // Enhanced function
   getStatusSpecificMessage, // New function
+  shouldShowBlockerButton, // New helper function
   getUrgencyIcon,
   getPriorityIcon,
   getStatusIcon,

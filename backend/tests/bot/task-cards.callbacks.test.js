@@ -208,7 +208,7 @@ describe('Task Cards Callbacks - Status Tracking', () => {
   describe('Blocker Details Callbacks', () => {
     test('should show blocker details prompt', async () => {
       const mockQuery = {
-        data: `blocker_add_${testTask._id.toString().slice(-6)}`,
+        data: `blocker_report_${testTask._id.toString().slice(-6)}`,
         from: { id: testUser._id, username: 'testuser' },
         message: { chat: { id: 123 }, message_id: 456 },
         id: 'callback_123'
@@ -271,7 +271,7 @@ describe('Task Cards Callbacks - Status Tracking', () => {
 
     test('should route blocker add callbacks correctly', async () => {
       const mockQuery = {
-        data: `blocker_add_${testTask._id.toString().slice(-6)}`,
+        data: `blocker_report_${testTask._id.toString().slice(-6)}`,
         from: { id: testUser._id, username: 'testuser' },
         message: { chat: { id: 123 }, message_id: 456 },
         id: 'callback_123'

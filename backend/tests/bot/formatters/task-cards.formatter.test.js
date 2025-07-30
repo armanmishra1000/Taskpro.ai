@@ -89,7 +89,7 @@ describe('Task Cards Formatter', () => {
   
   describe('Action Keyboard Creation', () => {
     test('creates action keyboard with status buttons', () => {
-      const keyboard = createTaskActionKeyboard('507f1f77bcf86cd799439011', 'ready');
+      const keyboard = createTaskActionKeyboard('507f1f77bcf86cd799439011', 'ready', mockTask);
       
       expect(keyboard.inline_keyboard).toHaveLength(5); // 5 rows of buttons
       expect(keyboard.inline_keyboard[0]).toContainEqual({
@@ -103,13 +103,51 @@ describe('Task Cards Formatter', () => {
     });
     
     test('marks current status in keyboard', () => {
-      const keyboard = createTaskActionKeyboard('507f1f77bcf86cd799439011', 'ready');
+      const keyboard = createTaskActionKeyboard('507f1f77bcf86cd799439011', 'ready', mockTask);
       
       const readyButton = keyboard.inline_keyboard[0].find(btn => 
         btn.callback_data === 'task_status_ready_439011'
       );
       
       expect(readyButton.text).toContain('● '); // Current status marker
+    });
+
+    test('shows blocker button for ready tasks without active blockers', () => {
+      const readyTask = { ...mockTask, status: 'ready', blockers: [] };
+      const keyboard = createTaskActionKeyboard('507f1f77bcf86cd799439011', 'ready', readyTask);
+      
+      const blockerButton = keyboard.inline_keyboard[2].find(btn => 
+        btn.callback_data === 'blocker_report_439011'
+      );
+      
+      expect(blockerButton).toBeDefined();
+      expect(blockerButton.text).toBe('🚧 Blocker');
+    });
+
+    test('hides blocker button for tasks with active blockers', () => {
+      const blockedTask = { 
+        ...mockTask, 
+        status: 'ready', 
+        blockers: [{ status: 'active' }] 
+      };
+      const keyboard = createTaskActionKeyboard('507f1f77bcf86cd799439011', 'ready', blockedTask);
+      
+      const blockerButton = keyboard.inline_keyboard[2].find(btn => 
+        btn.callback_data === 'blocker_report_439011'
+      );
+      
+      expect(blockerButton).toBeUndefined();
+    });
+
+    test('hides blocker button for invalid statuses', () => {
+      const doneTask = { ...mockTask, status: 'done', blockers: [] };
+      const keyboard = createTaskActionKeyboard('507f1f77bcf86cd799439011', 'done', doneTask);
+      
+      const blockerButton = keyboard.inline_keyboard[2].find(btn => 
+        btn.callback_data === 'blocker_report_439011'
+      );
+      
+      expect(blockerButton).toBeUndefined();
     });
   });
   

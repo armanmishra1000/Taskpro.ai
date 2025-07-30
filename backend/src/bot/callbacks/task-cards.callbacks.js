@@ -300,7 +300,7 @@ const handleStatusChange = async (bot, query) => {
     const statusMessage = `👤 Changed by: @${query.from.username || 'Unknown'}\n⏰ ${new Date().toLocaleString()}`;
     
     const successMessage = formatStatusUpdate(updatedTask, fromStatus, newStatus, statusMessage);
-    const keyboard = createTaskActionKeyboard(shortId, newStatus);
+    const keyboard = createTaskActionKeyboard(shortId, newStatus, updatedTask);
     
     // Update message
     await bot.editMessageText(successMessage, {
@@ -484,7 +484,7 @@ const handleDynamicCallback = async (bot, query) => {
   }
   
   // Handle blocker details callbacks
-  if (action.startsWith('blocker_add_')) {
+  if (action.startsWith('blocker_report_')) {
     return await handleBlockerAdd(bot, query);
   }
   
