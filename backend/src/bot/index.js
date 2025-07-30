@@ -5,6 +5,7 @@ const teamCommand = require('./commands/team.command');
 const assignCommand = require('./commands/assign.command');
 const taskCallbacks = require('./callbacks/task-creation.callbacks');
 const teamCallbacks = require('./callbacks/team.callbacks');
+const assignmentCallbacks = require('./callbacks/task-assignment.callbacks');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -58,8 +59,21 @@ bot.on('callback_query', async (query) => {
   const action = query.data;
   
   try {
+    // Handle assignment dynamic callbacks first
+    if (action.startsWith('assign_')) {
+      const handled = await assignmentCallbacks.handleDynamicCallback(bot, query);
+      if (handled) {
+        await bot.answerCallbackQuery(query.id);
+        return; // Exit if handled
+      }
+    }
+    
+    // Handle static assignment callbacks
+    if (assignmentCallbacks[action]) {
+      await assignmentCallbacks[action](bot, query);
+    }
     // Handle task callbacks
-    if (taskCallbacks[action]) {
+    else if (taskCallbacks[action]) {
       await taskCallbacks[action](bot, query);
     }
     // Handle team callbacks
