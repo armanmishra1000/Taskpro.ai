@@ -172,10 +172,13 @@ class BlockerManagementService {
       throw new NotFoundError('Task not found');
     }
     
-    const blocker = task.blockers.id(blockerId);
-    if (!blocker) {
+    // Since blockers don't have IDs, use array index
+    const blockerIndex = parseInt(blockerId);
+    if (isNaN(blockerIndex) || blockerIndex < 0 || blockerIndex >= task.blockers.length) {
       throw new NotFoundError('Blocker not found');
     }
+    
+    const blocker = task.blockers[blockerIndex];
     
     if (blocker.status !== 'active') {
       throw new ValidationError('Blocker is not active');
