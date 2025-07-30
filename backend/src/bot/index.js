@@ -6,6 +6,8 @@ const assignCommand = require('./commands/assign.command');
 const taskCallbacks = require('./callbacks/task-creation.callbacks');
 const teamCallbacks = require('./callbacks/team.callbacks');
 const assignmentCallbacks = require('./callbacks/task-assignment.callbacks');
+const cardsCommand = require('./commands/cards.command');
+const mytasksCommand = require('./commands/mytasks.command');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -37,7 +39,8 @@ bot.onText(/\/help/, (msg) => {
     `/start - Initialize bot\n` +
     `/newtask - Create a new task\n` +
     `/assign - Assign tasks to team members\n` +
-    `/mytasks - View your tasks\n` +
+    `/cards - View task cards with filters\n` +
+    `/mytasks - View your assigned tasks\n` +
     `/team - Manage team members\n` +
     `/help - Show this help message\n\n` +
     `More features coming soon!`,
@@ -53,6 +56,12 @@ bot.onText(/\/team/, (msg) => teamCommand.handler(bot, msg));
 
 // /assign command
 bot.onText(/\/assign/, (msg) => assignCommand.handler(bot, msg));
+
+// /cards command
+bot.onText(/\/cards/, (msg) => cardsCommand.handler(bot, msg));
+
+// /mytasks command
+bot.onText(/\/mytasks/, (msg) => mytasksCommand.handler(bot, msg));
 
 // Callback query handlers
 bot.on('callback_query', async (query) => {
