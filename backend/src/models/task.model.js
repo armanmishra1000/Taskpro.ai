@@ -1,5 +1,52 @@
 const mongoose = require('mongoose');
 
+// Blocker subdocument schema
+const blockerSchema = new mongoose.Schema({
+  reportedBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  reportedAt: { 
+    type: Date, 
+    default: Date.now 
+  },
+  impact: { 
+    type: String, 
+    enum: ['critical', 'high', 'medium'], 
+    required: true 
+  },
+  attempts: { 
+    type: String, 
+    required: true, 
+    minlength: 20 
+  },
+  logs: { 
+    type: String, 
+    required: true, 
+    minlength: 10 
+  },
+  status: { 
+    type: String, 
+    enum: ['active', 'escalated', 'resolved'], 
+    default: 'active' 
+  },
+  managerNotified: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  },
+  resolvedBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  },
+  resolvedAt: { 
+    type: Date 
+  },
+  resolution: { 
+    type: String 
+  }
+}, { _id: false });
+
 const taskSchema = new mongoose.Schema({
   // Core task fields from TaskContract
   title: { 
@@ -68,7 +115,7 @@ const taskSchema = new mongoose.Schema({
   completedAt: Date,
   
   // Arrays
-  blockers: [{ type: mongoose.Schema.Types.Mixed }],
+  blockers: [blockerSchema],
   comments: [{ type: mongoose.Schema.Types.Mixed }],
   statusHistory: [{
     fromStatus: {
@@ -131,6 +178,11 @@ taskSchema.index({ assignedTo: 1, deadline: 1 });
 taskSchema.index({ teamId: 1, status: 1 });
 taskSchema.index({ createdBy: 1, deadline: 1 });
 taskSchema.index({ deadline: 1, priority: 1 });
+
+// Blocker-specific indexes for performance
+taskSchema.index({ 'blockers.status': 1 });
+taskSchema.index({ 'blockers.reportedBy': 1 });
+taskSchema.index({ 'blockers.managerNotified': 1 });
 
 // Pre-save middleware to handle soft delete
 taskSchema.pre('save', function(next) {
