@@ -6,7 +6,7 @@
 3. Report "done" or error
 4. Move to next task
 
-## Task B1: Team Database Model and Contract
+<!-- ## Task B1: Team Database Model and Contract
 
 **MANDATORY FIRST:**
 1. Read `docs/features/team-management/CURRENT-STATE.md`
@@ -120,9 +120,9 @@ git push origin main
 
 **UPDATE AFTER:**
 - Update `CURRENT-STATE.md` with what was created
-- Mark task B1 complete in `TASK-LIST.md`
+- Mark task B1 complete in `TASK-LIST.md` -->
 
-## Task B2: Bot Command Handler
+<!-- ## Task B2: Bot Command Handler
 
 **MANDATORY FIRST:**
 1. Read `docs/features/team-management/CURRENT-STATE.md`
@@ -212,9 +212,9 @@ git push origin main
 
 **UPDATE AFTER:**
 - Update `CURRENT-STATE.md` with what was created
-- Mark task B2 complete in `TASK-LIST.md`
+- Mark task B2 complete in `TASK-LIST.md` -->
 
-## Task B3: Callback Query Handlers
+<!-- ## Task B3: Callback Query Handlers
 
 **MANDATORY FIRST:**
 1. Read `docs/features/team-management/BOT-INTERACTIONS.md`
@@ -555,9 +555,9 @@ git push origin main
 
 **UPDATE AFTER:**
 - Update `CURRENT-STATE.md` with what was created
-- Mark task B3 complete in `TASK-LIST.md`
+- Mark task B3 complete in `TASK-LIST.md` -->
 
-## Task B4: Service Layer
+<!-- ## Task B4: Service Layer
 
 **MANDATORY FIRST:**
 1. Read `shared/contracts/models/team.contract.js` (created in B1)
@@ -834,9 +834,9 @@ git push origin main
 
 **UPDATE AFTER:**
 - Update `CURRENT-STATE.md` with what was created
-- Mark task B4 complete in `TASK-LIST.md`
+- Mark task B4 complete in `TASK-LIST.md` -->
 
-## Task B5: Message Formatters
+<!-- ## Task B5: Message Formatters
 
 **MANDATORY FIRST:**
 1. Read `docs/features/team-management/messages.md`
@@ -1058,7 +1058,7 @@ git push origin main
 
 **UPDATE AFTER:**
 - Update `CURRENT-STATE.md` with what was created
-- Mark task B5 complete in `TASK-LIST.md`
+- Mark task B5 complete in `TASK-LIST.md` -->
 
 ## Task B6: Integration Tests
 
