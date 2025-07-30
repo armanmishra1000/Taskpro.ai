@@ -26,6 +26,15 @@ module.exports = {
       PERMISSION_DENIED: '❌ Permission Denied\n\nYou don\'t have permission for this action.',
       CANNOT_REMOVE_SELF: '❌ Cannot Remove Yourself\n\nYou are the only admin in this team.\nPromote another member to admin first.',
       MEMBER_EXISTS: '❌ Member Already Added\n\n@{username} is already a team member.\nUse /team list to see all members.'
+    },
+    
+    ASSIGNMENT: {
+      WELCOME: '👤 Task Assignment\n\nChoose a task to assign:',
+      NO_TASKS: '✅ All Tasks Assigned\n\nGreat news! All your tasks are already assigned to team members.\n\nCreate a new task with /newtask or check task status with /mytasks.',
+      SELECT_MEMBER: '👤 Select Team Member\n\nAssigning: {taskTitle}\n\nChoose who should work on this task:',
+      SUCCESS: '✅ Task Assigned Successfully!',
+      CONFIRMATION: '🤔 Confirm Assignment',
+      NOTIFICATION: '📬 New Task Assigned to You'
     }
   }
 }; 

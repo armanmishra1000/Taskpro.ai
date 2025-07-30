@@ -2,6 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const connectDB = require('../config/database');
 const newtaskCommand = require('./commands/newtask.command');
 const teamCommand = require('./commands/team.command');
+const assignCommand = require('./commands/assign.command');
 const taskCallbacks = require('./callbacks/task-creation.callbacks');
 const teamCallbacks = require('./callbacks/team.callbacks');
 require('dotenv').config();
@@ -34,6 +35,7 @@ bot.onText(/\/help/, (msg) => {
     `📋 *Available Commands:*\n\n` +
     `/start - Initialize bot\n` +
     `/newtask - Create a new task\n` +
+    `/assign - Assign tasks to team members\n` +
     `/mytasks - View your tasks\n` +
     `/team - Manage team members\n` +
     `/help - Show this help message\n\n` +
@@ -47,6 +49,9 @@ bot.onText(/\/newtask/, (msg) => newtaskCommand.handler(bot, msg));
 
 // /team command
 bot.onText(/\/team/, (msg) => teamCommand.handler(bot, msg));
+
+// /assign command
+bot.onText(/\/assign/, (msg) => assignCommand.handler(bot, msg));
 
 // Callback query handlers
 bot.on('callback_query', async (query) => {
