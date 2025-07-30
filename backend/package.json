@@ -1,0 +1,107 @@
+{
+  "name": "taskpro-ai-backend",
+  "version": "1.0.0",
+  "description": "Telegram bot for task management using Elon Musk principles",
+  "main": "src/bot/index.js",
+  "scripts": {
+    "start": "node src/bot/index.js",
+    "dev": "nodemon src/bot/index.js",
+    "dev:interactive": "node ../tools/interactive-dev.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:feature": "jest --testPathPattern=features/",
+    
+    "generate:feature": "node ../tools/feature-generator.js",
+    "validate:contracts": "node ../tools/validate-contracts.js",
+    "validate:contracts:fix": "node ../tools/validate-contracts.js --fix",
+    "validate:all": "npm run validate:contracts && npm run lint && npm run test",
+    
+    "lint": "eslint src/ --ext .js",
+    "lint:fix": "eslint src/ --ext .js --fix",
+    
+    "db:init": "node scripts/init-db.js",
+    "db:seed": "node scripts/seed-db.js",
+    "db:reset": "node scripts/reset-db.js",
+    
+    "playground": "node ../tools/playground.js",
+    "metrics": "node ../tools/metrics-dashboard.js",
+    "analyze:performance": "node ../tools/performance-analyzer.js",
+    
+    "precommit": "npm run validate:all",
+    "prepush": "npm run test:coverage",
+    
+    "bot:test": "BOT_TOKEN=$TEST_BOT_TOKEN npm run dev",
+    "bot:prod": "NODE_ENV=production npm start"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.65.1",
+    "mongoose": "^8.0.0",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.3",
+    "moment": "^2.29.4",
+    "joi": "^17.11.0",
+    "winston": "^3.11.0",
+    "express": "^4.18.2",
+    "axios": "^1.6.2",
+    "lodash": "^4.17.21",
+    "uuid": "^9.0.1",
+    "xstate": "^5.5.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.7.0",
+    "eslint": "^8.54.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "husky": "^8.0.3",
+    "chalk": "^4.1.2",
+    "inquirer": "^8.2.6",
+    "fs-extra": "^11.1.1",
+    "glob": "^10.3.10",
+    "@types/node": "^20.10.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/**/*.test.js"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js",
+      "**/src/**/*.test.js"
+    ],
+    "setupFilesAfterEnv": ["./tests/setup.js"]
+  },
+  "eslintConfig": {
+    "extends": "airbnb-base",
+    "env": {
+      "node": true,
+      "jest": true
+    },
+    "rules": {
+      "no-console": "off",
+      "no-underscore-dangle": ["error", { "allow": ["_id"] }],
+      "consistent-return": "off"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/taskpro-ai.git"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "task-management",
+    "elon-musk",
+    "delegation",
+    "ai"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+} 
