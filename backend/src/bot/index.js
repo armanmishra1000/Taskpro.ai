@@ -9,6 +9,7 @@ const assignmentCallbacks = require('./callbacks/task-assignment.callbacks');
 const cardsCommand = require('./commands/cards.command');
 const mytasksCommand = require('./commands/mytasks.command');
 const taskCardsCallbacks = require('./callbacks/task-cards.callbacks');
+const blockerCallbacks = require('./callbacks/blocker-management.callbacks');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -107,6 +108,15 @@ bot.on('callback_query', async (query) => {
       }
     }
 
+    // Handle blocker callbacks first
+    if (action.startsWith('blocker_') || action.startsWith('impact_')) {
+      if (blockerCallbacks[action]) {
+        await blockerCallbacks[action](bot, query);
+        await bot.answerCallbackQuery(query.id);
+        return;
+      }
+    }
+
     // Handle static task cards callbacks
     if (taskCardsCallbacks[action]) {
       await taskCardsCallbacks[action](bot, query);
@@ -119,11 +129,16 @@ bot.on('callback_query', async (query) => {
   }
 });
 
-// Text message handler for team member input
+// Text message handler for team member input and blocker forms
 bot.on('message', async (msg) => {
   if (msg.text && !msg.text.startsWith('/')) {
-    // Simple state check - in production, implement proper user state storage
-    // For now, handle team member format
+    // Handle blocker form text input first
+    const handled = await blockerCallbacks.handleTextInput(bot, msg);
+    if (handled) {
+      return; // Exit if blocker form handled the message
+    }
+    
+    // Handle team member format
     if (msg.text.includes('@') && (msg.text.includes('member') || msg.text.includes('manager') || msg.text.includes('admin'))) {
       await teamCallbacks.handleMemberInput(bot, msg);
     }
