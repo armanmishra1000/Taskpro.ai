@@ -6,7 +6,7 @@
 3. Report "done" or error
 4. Move to next task
 
-## Task B1: Database Models
+<!-- ## Task B1: Database Models
 
 **MANDATORY FIRST:**
 1. Read `docs/features/task-creation-validation/CURRENT-STATE.md`
@@ -86,9 +86,9 @@ git push origin main
 
 **UPDATE AFTER:**
 - Update `CURRENT-STATE.md` with "Task model created"
-- Mark B1 complete in `TASK-LIST.md`
+- Mark B1 complete in `TASK-LIST.md` -->
 
-## Task B2: Bot Command Handler
+<!-- ## Task B2: Bot Command Handler
 
 **MANDATORY FIRST:**
 1. Read `docs/features/task-creation-validation/CURRENT-STATE.md`
@@ -165,7 +165,7 @@ git add backend/src/bot/commands/
 git add backend/src/bot/index.js
 git commit -m "feat(task-creation): add /newtask command handler"
 git push origin main
-```
+``` -->
 
 ## Task B3: Callback Query Handlers
 
