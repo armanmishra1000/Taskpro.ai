@@ -13,11 +13,12 @@
 - ✅ Complete feature documentation
 - ✅ Implementation task prompts ready
 - ✅ Task model created with validation and tests
+- ✅ /newtask command handler created with tests
 
 ## Bot Commands:
 - /start - Basic welcome message
 - /help - Show available commands
-- /newtask - (Ready for implementation using task prompts)
+- /newtask - Create new task with input method selection
 
 ## Inline Keyboards:
 - deadline - Date selection keyboard
@@ -29,7 +30,7 @@
 - UserContract - For user information (contract defined)
 
 ## Next Task: 
-B2 - Create Task Service Layer (use task-prompts.md)
+B3 - Create Callback Query Handlers (use task-prompts.md)
 
 ## Documentation Created:
 - ✅ CURRENT-STATE.md - This file

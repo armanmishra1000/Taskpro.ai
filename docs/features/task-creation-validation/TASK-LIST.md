@@ -2,13 +2,13 @@
 
 ## Backend Tasks:
 - [x] B1: Create/Update Database Models
-- [ ] B2: Create Bot Command Handler
+- [x] B2: Create Bot Command Handler
 - [ ] B3: Create Callback Query Handlers  
 - [ ] B4: Create Service Layer
 - [ ] B5: Create Message Formatters
 - [ ] B6: Integration Tests
 
-## Current Task: B2
+## Current Task: B3
 
 ## Task Details:
 - **B1**: Ensure Task model exists and has all required fields
