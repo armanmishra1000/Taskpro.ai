@@ -2,6 +2,7 @@ const { MESSAGES } = require('../constants/messages');
 const { createInlineKeyboard } = require('../../utils/keyboard');
 const Task = require('../../models/task.model');
 const Team = require('../../models/team.model');
+const TaskAssignmentService = require('../../services/task-assignment/task-assignment.service');
 const { assignmentStates } = require('../commands/assign.command');
 
 // Handle task selection from /assign command
@@ -21,10 +22,17 @@ const handleTaskSelection = async (bot, query) => {
       );
     }
     
-    // Get team members for selection
-    // For now, get first team user belongs to
+    // Get team members for selection using service
     const team = await Team.findOne({ 'members.userId': userId });
-    if (!team || team.members.length === 0) {
+    if (!team) {
+      return await bot.editMessageText(
+        '❌ No team found. Use /team to manage your team.',
+        { chat_id: chatId, message_id: messageId }
+      );
+    }
+    
+    const members = await TaskAssignmentService.getAssignableMembers(team._id);
+    if (members.length === 0) {
       return await bot.editMessageText(
         '❌ No team members found. Use /team to manage your team.',
         { chat_id: chatId, message_id: messageId }
@@ -32,7 +40,7 @@ const handleTaskSelection = async (bot, query) => {
     }
     
     // Create member selection keyboard
-    const memberButtons = team.members.map(member => [{
+    const memberButtons = members.map(member => [{
       text: `👤 @${member.username} (${member.role})`,
       callback_data: `assign_to_${member.username}_${taskId}`
     }]);
@@ -84,15 +92,6 @@ const handleMemberAssignment = async (bot, query) => {
   const taskId = parts[3];
   
   try {
-    // Get task and validate
-    const task = await Task.findById(taskId);
-    if (!task) {
-      return await bot.editMessageText(
-        MESSAGES.ERRORS.NOT_FOUND,
-        { chat_id: chatId, message_id: messageId }
-      );
-    }
-    
     // Find team member details
     const team = await Team.findOne({ 'members.userId': userId });
     const assignee = team.members.find(m => m.username === username);
@@ -104,9 +103,8 @@ const handleMemberAssignment = async (bot, query) => {
       );
     }
     
-    // For now, directly assign (later add confirmation step)
-    task.assignedTo = assignee.userId;
-    await task.save();
+    // Use service to assign task
+    const task = await TaskAssignmentService.assignTask(taskId, assignee.userId, userId);
     
     // Show success message
     const successMessage = `${MESSAGES.ASSIGNMENT.SUCCESS}

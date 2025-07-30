@@ -1,6 +1,7 @@
 const { MESSAGES } = require('../constants/messages');
 const { createInlineKeyboard } = require('../../utils/keyboard');
 const Task = require('../../models/task.model');
+const TaskAssignmentService = require('../../services/task-assignment/task-assignment.service');
 
 // User state management for assignment flow
 const assignmentStates = new Map();
@@ -16,13 +17,8 @@ module.exports = {
       // Clear any existing assignment state
       assignmentStates.delete(userId);
       
-      // Get unassigned tasks for this user/team
-      // For now, get all pending/ready tasks where assignedTo is null
-      const unassignedTasks = await Task.find({
-        assignedTo: null,
-        status: { $in: ['pending', 'ready'] },
-        createdBy: userId // Initially only show user's own tasks
-      }).limit(10).sort({ createdAt: -1 });
+      // Get unassigned tasks using service
+      const unassignedTasks = await TaskAssignmentService.getUnassignedTasks(userId);
       
       if (unassignedTasks.length === 0) {
         return await bot.sendMessage(
