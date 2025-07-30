@@ -15,6 +15,7 @@
 - ✅ **Task Assignment** - Complete implementation with dynamic member selection and notification system
 - ✅ **Task Cards Display** - Complete implementation with visual formatting, filtering, and status management
 - ✅ **Status Tracking** - Complete implementation with comprehensive status flow management and full test coverage
+- ✅ **Blocker Management** - Complete implementation with form validation, manager escalation, and resolution tracking
 
 ### Task Creation & Validation Feature Details
 
@@ -283,6 +284,80 @@
 
 8. **Comprehensive Testing**: 70 passing tests across integration, service, and formatter layers ensure reliable assignment functionality.
 
+### Blocker Management Feature Details
+
+**Status**: ✅ Complete - All 6 implementation tasks (B1-B6) finished
+
+**Files Created**:
+
+**Backend Implementation**:
+- `backend/src/bot/callbacks/blocker-management.callbacks.js` - Blocker reporting flow handlers
+- `backend/src/services/blocker-management/blocker-management.service.js` - Validation and escalation service
+- `backend/src/bot/formatters/blocker-management.formatter.js` - Message formatting utilities
+
+**Integration Updates**:
+- `backend/src/bot/formatters/task-cards.formatter.js` - Added blocker button to task cards
+- `backend/src/bot/formatters/task-assignment.formatter.js` - Added blocker button to assignment cards
+- `backend/src/bot/constants/messages.js` - Added blocker message constants
+- `backend/src/models/task.model.js` - Validated blocker schema support
+
+**Test Coverage**:
+- `backend/tests/bot/blocker-management.test.js` - Complete integration tests
+
+**Documentation**:
+- `docs/features/blocker-management/spec.md` - Feature specification
+- `docs/features/blocker-management/BOT-INTERACTIONS.md` - User flow documentation
+- `docs/features/blocker-management/messages.md` - Bot message definitions
+- `docs/features/blocker-management/tasks.md` - Task details and requirements
+- `docs/features/blocker-management/task-prompts.md` - Implementation prompts
+- `docs/features/blocker-management/TASK-LIST.md` - Task tracking
+- `docs/features/blocker-management/CURRENT-STATE.md` - Progress tracking
+- `docs/features/blocker-management/PROBLEMS-LOG.md` - Issue tracking
+
+**Key Features**:
+- Inline "🚧 Blocker" button on all task cards
+- Multi-step form validation (impact, attempts, evidence)
+- Automatic manager identification and notification
+- Prevents duplicate blocker reports
+- Integrates with existing status tracking system
+- Complete resolution workflow
+
+**Integration Points**:
+- Works with existing /cards and /mytasks commands
+- Uses existing team management for manager escalation
+- Updates task status to 'blocked' automatically
+- Tracks blocker history in task model
+
+**Bot Interactions**:
+- No new commands - seamlessly integrates with existing task displays
+- Form-based blocker reporting with validation
+- Manager notification system
+- Resolution tracking and status updates
+
+**Testing**:
+- All integration tests pass (16/16)
+- Manual testing completed with actual Telegram bot
+- Edge cases handled (no manager, invalid status, duplicates)
+- Validation logic thoroughly tested
+
+**Key Learnings for Next Features**:
+
+1. **Form Validation**: Multi-step form validation with character limits ensures quality blocker reports and reduces noise.
+
+2. **Manager Escalation**: Automatic manager identification and notification system improves response times and accountability.
+
+3. **Status Integration**: Seamless integration with existing status tracking prevents workflow disruption.
+
+4. **Duplicate Prevention**: Active blocker validation prevents spam and ensures focused escalation.
+
+5. **Resolution Tracking**: Complete resolution workflow with history tracking provides audit trail and learning opportunities.
+
+6. **Service Layer Design**: Comprehensive service layer with validation, escalation, and resolution logic ensures maintainability.
+
+7. **Message Formatting**: Dedicated formatters for blocker interactions improve user experience and message consistency.
+
+8. **Integration Testing**: 16 comprehensive tests covering all workflows and edge cases ensure reliable blocker management.
+
 ## Shared Infrastructure
 - Database connection: `backend/src/config/database.js`
 - Bot instance: `backend/src/bot/index.js`
@@ -317,10 +392,17 @@
   - ✅ Visual design system with emoji indicators implemented
   - ✅ Comprehensive test coverage completed
 
+- Blocker Management: `docs/features/blocker-management/`
+  - ✅ Complete specification and implementation guides
+  - ✅ Copy-paste task prompts for development (B1-B6)
+  - ✅ Bot interaction flows documented
+  - ✅ Form validation and manager escalation system implemented
+  - ✅ Comprehensive test coverage completed
+
 ## Next Features to Implement
-1. Status Tracking  
-2. Blocker Management
-3. Task Analytics & Reporting
+1. Task Analytics & Reporting
+2. Advanced Notifications
+3. Performance Monitoring
 
 ## Development Workflow
 1. Use task prompts from `docs/features/[feature]/task-prompts.md`
