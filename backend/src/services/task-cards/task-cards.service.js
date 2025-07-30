@@ -156,11 +156,20 @@ class TaskCardsService {
         task.statusHistory = [];
       }
       
+      // Calculate duration in previous status
+      let duration = 0;
+      if (task.statusHistory.length > 0) {
+        const lastEntry = task.statusHistory[task.statusHistory.length - 1];
+        const timeInPreviousStatus = new Date() - new Date(lastEntry.changedAt);
+        duration = Math.max(0, timeInPreviousStatus);
+      }
+      
       task.statusHistory.push({
-        status: newStatus,
+        fromStatus: oldStatus,
+        toStatus: newStatus,
         changedBy: user._id,
         changedAt: new Date(),
-        previousStatus: oldStatus
+        duration: duration
       });
       
       await task.save();
@@ -261,11 +270,21 @@ class TaskCardsService {
         task.statusHistory = [];
       }
       
+      // Calculate duration in previous status
+      let duration = 0;
+      if (task.statusHistory.length > 0) {
+        const lastEntry = task.statusHistory[task.statusHistory.length - 1];
+        const timeInPreviousStatus = new Date() - new Date(lastEntry.changedAt);
+        duration = Math.max(0, timeInPreviousStatus);
+      }
+      
       task.statusHistory.push({
-        status: 'blocked',
+        fromStatus: oldStatus,
+        toStatus: 'blocked',
         changedBy: user._id,
         changedAt: new Date(),
-        previousStatus: oldStatus
+        reason: reason,
+        duration: duration
       });
       
       await task.save();

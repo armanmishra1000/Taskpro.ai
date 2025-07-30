@@ -70,7 +70,36 @@ const taskSchema = new mongoose.Schema({
   // Arrays
   blockers: [{ type: mongoose.Schema.Types.Mixed }],
   comments: [{ type: mongoose.Schema.Types.Mixed }],
-  statusHistory: [{ type: mongoose.Schema.Types.Mixed }],
+  statusHistory: [{
+    fromStatus: {
+      type: String,
+      enum: ['pending', 'ready', 'in_progress', 'review', 'done', 'blocked'],
+      required: true
+    },
+    toStatus: {
+      type: String, 
+      enum: ['pending', 'ready', 'in_progress', 'review', 'done', 'blocked'],
+      required: true
+    },
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    changedAt: {
+      type: Date,
+      default: Date.now,
+      required: true
+    },
+    reason: {
+      type: String,
+      maxlength: 500
+    },
+    duration: {
+      type: Number, // Milliseconds in previous status
+      min: 0
+    }
+  }],
   
   // Soft delete fields from BaseModelContract
   isDeleted: {
@@ -107,6 +136,20 @@ taskSchema.index({ deadline: 1, priority: 1 });
 taskSchema.pre('save', function(next) {
   if (this.isDeleted && !this.deletedAt) {
     this.deletedAt = new Date();
+  }
+  next();
+});
+
+// Enhanced pre-save middleware for status change timestamps
+taskSchema.pre('save', function(next) {
+  if (this.isModified('status') && !this.isNew) {
+    // Update timestamps based on status
+    if (this.status === 'in_progress' && !this.startedAt) {
+      this.startedAt = new Date();
+    }
+    if (this.status === 'done' && !this.completedAt) {
+      this.completedAt = new Date();
+    }
   }
   next();
 });
@@ -215,6 +258,19 @@ taskSchema.statics.getTaskSummary = async function(userId) {
     this.countDocuments(baseQuery)
   ]);
   return { overdue, today, tomorrow, week, total };
+};
+
+// Status transition validation
+taskSchema.statics.isValidStatusTransition = function(fromStatus, toStatus) {
+  const validTransitions = {
+    'pending': ['ready'],
+    'ready': ['in_progress', 'blocked'],
+    'in_progress': ['review', 'blocked'],
+    'review': ['done', 'in_progress'],
+    'blocked': ['ready', 'in_progress'],
+    'done': [] // Terminal status
+  };
+  return validTransitions[fromStatus]?.includes(toStatus) || false;
 };
 
 module.exports = mongoose.model('Task', taskSchema); 
