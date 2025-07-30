@@ -1,52 +1,79 @@
 const Task = require('../../models/task.model');
 const User = require('../../models/user.model');
 const { ValidationError } = require('../../utils/errors');
+const mongoose = require('mongoose');
 
 class TaskCardsService {
   
   // Get task summary with counts by urgency
-  async getTaskSummary(userId) {
+  async getTaskSummary(telegramId) {
     try {
-      return await Task.getTaskSummary(userId);
+      // Convert telegramId to ObjectId for Task model methods
+      const user = await User.findOne({ telegramId });
+      if (!user) {
+        throw new ValidationError('User not found');
+      }
+      return await Task.getTaskSummary(user._id);
     } catch (error) {
       throw new Error(`Failed to get task summary: ${error.message}`);
     }
   }
   
   // Get filtered tasks with pagination
-  async getFilteredTasks(userId, filter, page = 1, limit = 3) {
+  async getFilteredTasks(telegramId, filter, page = 1, limit = 3) {
     try {
+      // Convert telegramId to ObjectId for Task model methods
+      const user = await User.findOne({ telegramId });
+      if (!user) {
+        throw new ValidationError('User not found');
+      }
+      
       const skip = (page - 1) * limit;
       
-      let query;
+      let baseQuery;
       switch (filter) {
         case 'overdue':
-          query = Task.getTasksByDeadline(userId, 'overdue');
+          baseQuery = { $or: [{ createdBy: user._id }, { assignedTo: user._id }], deadline: { $lt: new Date() }, status: { $ne: 'done' } };
           break;
-        case 'today':
-          query = Task.getTasksByDeadline(userId, 'today');
+        case 'today': {
+          const startOfDay = new Date();
+          startOfDay.setHours(0, 0, 0, 0);
+          const endOfDay = new Date();
+          endOfDay.setHours(23, 59, 59, 999);
+          baseQuery = { $or: [{ createdBy: user._id }, { assignedTo: user._id }], deadline: { $gte: startOfDay, $lte: endOfDay } };
           break;
-        case 'tomorrow':
-          query = Task.getTasksByDeadline(userId, 'tomorrow');
+        }
+        case 'tomorrow': {
+          const startOfTomorrow = new Date();
+          startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+          startOfTomorrow.setHours(0, 0, 0, 0);
+          const endOfTomorrow = new Date(startOfTomorrow);
+          endOfTomorrow.setHours(23, 59, 59, 999);
+          baseQuery = { $or: [{ createdBy: user._id }, { assignedTo: user._id }], deadline: { $gte: startOfTomorrow, $lte: endOfTomorrow } };
           break;
-        case 'week':
-          query = Task.getTasksByDeadline(userId, 'week');
+        }
+        case 'week': {
+          const now = new Date();
+          const nextWeek = new Date();
+          nextWeek.setDate(nextWeek.getDate() + 7);
+          baseQuery = { $or: [{ createdBy: user._id }, { assignedTo: user._id }], deadline: { $gte: now, $lte: nextWeek } };
           break;
+        }
         case 'assigned':
-          query = Task.find({ assignedTo: userId });
+          baseQuery = { assignedTo: user._id };
           break;
         default:
-          query = Task.getTasksByDeadline(userId, 'all');
+          baseQuery = { $or: [{ createdBy: user._id }, { assignedTo: user._id }] };
       }
       
       const [tasks, totalTasks] = await Promise.all([
-        query
+        Task.find(baseQuery)
           .populate('assignedTo', 'firstName lastName username')
           .populate('createdBy', 'firstName lastName username')
           .sort({ deadline: 1, priority: -1 })
           .skip(skip)
           .limit(limit),
-        query.countDocuments()
+        Task.countDocuments(baseQuery)
       ]);
       
       const totalPages = Math.ceil(totalTasks / limit);
@@ -66,18 +93,22 @@ class TaskCardsService {
   }
   
   // Update task status with validation
-  async updateTaskStatus(taskId, newStatus, userId) {
+  async updateTaskStatus(taskId, newStatus, telegramId) {
     try {
       const task = await Task.findById(taskId);
       if (!task) {
         throw new ValidationError('Task not found');
       }
       
+      // Get user by telegramId
+      const user = await User.findOne({ telegramId });
+      if (!user) {
+        throw new ValidationError('User not found');
+      }
+      
       // Check permissions
-      if (task.createdBy.toString() !== userId && task.assignedTo?.toString() !== userId) {
-        // Check if user is admin/manager in team
-        const user = await User.findOne({ telegramId: userId });
-        if (!user || !['admin', 'manager'].includes(user.role)) {
+      if (task.createdBy.toString() !== user._id.toString() && task.assignedTo?.toString() !== user._id.toString()) {
+        if (!['admin', 'manager'].includes(user.role)) {
           throw new ValidationError('Access denied: You can only update tasks you created or are assigned to');
         }
       }
@@ -127,7 +158,7 @@ class TaskCardsService {
       
       task.statusHistory.push({
         status: newStatus,
-        changedBy: userId,
+        changedBy: user._id,
         changedAt: new Date(),
         previousStatus: oldStatus
       });
@@ -150,15 +181,21 @@ class TaskCardsService {
   }
   
   // Add task comment
-  async addTaskComment(taskId, comment, userId) {
+  async addTaskComment(taskId, comment, telegramId) {
     try {
       const task = await Task.findById(taskId);
       if (!task) {
         throw new ValidationError('Task not found');
       }
       
+      // Get user by telegramId
+      const user = await User.findOne({ telegramId });
+      if (!user) {
+        throw new ValidationError('User not found');
+      }
+      
       // Check permissions
-      if (task.createdBy.toString() !== userId && task.assignedTo?.toString() !== userId) {
+      if (task.createdBy.toString() !== user._id.toString() && task.assignedTo?.toString() !== user._id.toString()) {
         throw new ValidationError('Access denied');
       }
       
@@ -168,7 +205,7 @@ class TaskCardsService {
       
       task.comments.push({
         text: comment,
-        author: userId,
+        author: user._id,
         createdAt: new Date()
       });
       
@@ -183,35 +220,73 @@ class TaskCardsService {
     }
   }
   
-  // Mark task as blocked
-  async blockTask(taskId, reason, userId) {
+  // Block task with reason
+  async blockTask(taskId, reason, telegramId) {
     try {
-      const result = await this.updateTaskStatus(taskId, 'blocked', userId);
+      const task = await Task.findById(taskId);
+      if (!task) {
+        throw new ValidationError('Task not found');
+      }
       
-      // Add blocker to task
-      const task = result.task;
+      // Get user by telegramId
+      const user = await User.findOne({ telegramId });
+      if (!user) {
+        throw new ValidationError('User not found');
+      }
+      
+      // Check permissions
+      if (task.createdBy.toString() !== user._id.toString() && task.assignedTo?.toString() !== user._id.toString()) {
+        if (!['admin', 'manager'].includes(user.role)) {
+          throw new ValidationError('Access denied: You can only block tasks you created or are assigned to');
+        }
+      }
+      
+      // Update task status to blocked
+      const oldStatus = task.status;
+      task.status = 'blocked';
+      
+      // Add blocker information
       if (!task.blockers) {
         task.blockers = [];
       }
       
       task.blockers.push({
         reason,
-        reportedBy: userId,
-        reportedAt: new Date(),
-        resolved: false
+        reportedBy: user._id,
+        reportedAt: new Date()
+      });
+      
+      // Add to status history
+      if (!task.statusHistory) {
+        task.statusHistory = [];
+      }
+      
+      task.statusHistory.push({
+        status: 'blocked',
+        changedBy: user._id,
+        changedAt: new Date(),
+        previousStatus: oldStatus
       });
       
       await task.save();
       
-      return { ...result, blockReason: reason };
+      return {
+        task,
+        blockReason: reason,
+        oldStatus,
+        newStatus: 'blocked'
+      };
       
     } catch (error) {
-      throw error; // Pass through validation errors
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new Error(`Failed to block task: ${error.message}`);
     }
   }
   
-  // Get task details for card display
-  async getTaskCard(taskId, userId) {
+  // Get single task card
+  async getTaskCard(taskId, telegramId) {
     try {
       const task = await Task.findById(taskId)
         .populate('assignedTo', 'firstName lastName username')
@@ -221,9 +296,17 @@ class TaskCardsService {
         throw new ValidationError('Task not found');
       }
       
+      // Get user by telegramId
+      const user = await User.findOne({ telegramId });
+      if (!user) {
+        throw new ValidationError('User not found');
+      }
+      
       // Check permissions
-      if (task.createdBy.toString() !== userId && task.assignedTo?.toString() !== userId) {
-        throw new ValidationError('Access denied');
+      if (task.createdBy.toString() !== user._id.toString() && task.assignedTo?.toString() !== user._id.toString()) {
+        if (!['admin', 'manager'].includes(user.role)) {
+          throw new ValidationError('Access denied');
+        }
       }
       
       return task;
@@ -236,18 +319,16 @@ class TaskCardsService {
     }
   }
   
-  // Helper method for status messages
+  // Get status message
   getStatusMessage(status) {
     const messages = {
       'ready': 'Task is ready to be worked on.',
       'in_progress': 'Task is now active and being worked on.',
       'review': 'Task is ready for review and feedback.',
       'done': 'Task completed successfully! 🎉',
-      'blocked': 'Task has been blocked and needs attention.',
-      'pending': 'Task is pending approval or assignment.'
+      'blocked': 'Task is blocked and needs attention.'
     };
-    
-    return messages[status] || 'Task status updated.';
+    return messages[status] || 'Status updated successfully.';
   }
 }
 
