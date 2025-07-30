@@ -13,6 +13,7 @@ const blockerCallbacks = require('./callbacks/blocker-management.callbacks');
 const standupCommand = require('./commands/standup.command');
 const standupnowCommand = require('./commands/standupnow.command');
 const standupCallbacks = require('./callbacks/daily-standup.callbacks');
+const standupScheduler = require('../services/daily-standup/scheduler.service');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -22,6 +23,9 @@ connectDB();
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 console.log('🤖 Bot started successfully!');
+
+// Initialize scheduler after bot starts
+standupScheduler.initialize();
 
 // Basic /start command
 bot.onText(/\/start/, (msg) => {
