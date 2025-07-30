@@ -44,6 +44,14 @@ module.exports = {
       LOGS_TOO_SHORT: '❌ Evidence too short. Please provide at least 10 characters of evidence.',
       DUPLICATE_BLOCKER: '⚠️ *Blocker Already Reported*\n\nThis task already has an active blocker.\nContact your manager or wait for resolution.',
       INVALID_STATUS: '❌ *Cannot Report Blocker*\n\nBlockers can only be reported for Ready or In Progress tasks.'
+    },
+    
+    STANDUP: {
+      PERMISSION_DENIED: '❌ Only team managers and admins can configure standup automation.\n\nContact your team manager for access.',
+      NO_TEAM: '❌ You must be part of a team to use standup features.\n\nJoin a team with /team first.',
+      CONFIG_SUCCESS: '✅ Standup automation configured successfully!',
+      ENABLED: '🟢 Daily standup automation is now active.',
+      DISABLED: '⚪ Daily standup automation has been disabled.'
     }
   }
 }; 

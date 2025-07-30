@@ -10,6 +10,8 @@ const cardsCommand = require('./commands/cards.command');
 const mytasksCommand = require('./commands/mytasks.command');
 const taskCardsCallbacks = require('./callbacks/task-cards.callbacks');
 const blockerCallbacks = require('./callbacks/blocker-management.callbacks');
+const standupCommand = require('./commands/standup.command');
+const standupnowCommand = require('./commands/standupnow.command');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -44,6 +46,8 @@ bot.onText(/\/help/, (msg) => {
     `/cards - View task cards with filters\n` +
     `/mytasks - View your assigned tasks\n` +
     `/team - Manage team members\n` +
+    `/standup - Configure daily standup automation\n` +
+    `/standupnow - Trigger immediate standup test\n` +
     `/help - Show this help message\n\n` +
     `More features coming soon!`,
     { parse_mode: 'Markdown' }
@@ -64,6 +68,12 @@ bot.onText(/\/cards/, (msg) => cardsCommand.handler(bot, msg));
 
 // /mytasks command
 bot.onText(/\/mytasks/, (msg) => mytasksCommand.handler(bot, msg));
+
+// /standup command
+bot.onText(/\/standup/, (msg) => standupCommand.handler(bot, msg));
+
+// /standupnow command
+bot.onText(/\/standupnow/, (msg) => standupnowCommand.handler(bot, msg));
 
 // Callback query handlers
 bot.on('callback_query', async (query) => {
