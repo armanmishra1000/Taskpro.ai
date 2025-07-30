@@ -35,7 +35,7 @@ class TaskAssignmentService {
         throw new ValidationError('Team not found');
       }
       
-      let members = team.members.filter(member => member.isActive !== false);
+      let members = team.members;
       
       if (excludeUserId) {
         members = members.filter(member => member.userId.toString() !== excludeUserId);
@@ -137,7 +137,7 @@ class TaskAssignmentService {
       }
       
       const isMember = team.members.some(member => 
-        member.userId.toString() === assigneeId && member.isActive !== false
+        member.userId.toString() === assigneeId.toString()
       );
       
       if (!isMember) {
