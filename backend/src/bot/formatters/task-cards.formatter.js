@@ -169,7 +169,7 @@ const createTaskActionKeyboard = (taskId, currentStatus) => {
     ],
     [
       { text: "🚧 Blocked", callback_data: `task_blocked_${shortId}` },
-      { text: "💬 Comment", callback_data: `task_comment_${shortId}` }
+      { text: "📊 History", callback_data: `status_history_${shortId}` }
     ]
   ];
   
