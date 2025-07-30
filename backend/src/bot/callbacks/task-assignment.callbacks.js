@@ -3,6 +3,12 @@ const { createInlineKeyboard } = require('../../utils/keyboard');
 const Task = require('../../models/task.model');
 const Team = require('../../models/team.model');
 const TaskAssignmentService = require('../../services/task-assignment/task-assignment.service');
+const {
+  formatMemberSelectionMessage,
+  createMemberSelectionKeyboard,
+  formatAssignmentSuccess,
+  formatErrorMessage
+} = require('../formatters/task-assignment.formatter');
 const { assignmentStates } = require('../commands/assign.command');
 
 // Handle task selection from /assign command
@@ -39,22 +45,8 @@ const handleTaskSelection = async (bot, query) => {
       );
     }
     
-    // Create member selection keyboard
-    const memberButtons = members.map(member => [{
-      text: `👤 @${member.username} (${member.role})`,
-      callback_data: `assign_to_${member.username}_${taskId}`
-    }]);
-    
-    // Add navigation buttons
-    memberButtons.push([
-      { text: '🔙 Back', callback_data: 'assign_back' },
-      { text: '❌ Cancel', callback_data: 'assign_cancel' }
-    ]);
-    
-    const keyboard = createInlineKeyboard(memberButtons);
-    
-    const messageText = MESSAGES.ASSIGNMENT.SELECT_MEMBER
-      .replace('{taskTitle}', task.title);
+    const messageText = formatMemberSelectionMessage(task);
+    const keyboard = createMemberSelectionKeyboard(members, taskId);
     
     await bot.editMessageText(
       messageText,
@@ -106,17 +98,8 @@ const handleMemberAssignment = async (bot, query) => {
     // Use service to assign task
     const task = await TaskAssignmentService.assignTask(taskId, assignee.userId, userId);
     
-    // Show success message
-    const successMessage = `${MESSAGES.ASSIGNMENT.SUCCESS}
-
-📋 ${task.title}
-👤 Assigned to: @${username}
-📅 Deadline: ${task.deadline ? task.deadline.toDateString() : 'Not set'}
-🎯 Success metric: ${task.successMetric || 'Not specified'}
-
-Task ID: #${task._id.toString().slice(-4)}
-
-✉️ Notification sent to @${username}`;
+    // Show success message using formatter
+    const successMessage = formatAssignmentSuccess(task, assignee);
     
     await bot.editMessageText(
       successMessage,

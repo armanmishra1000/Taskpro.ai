@@ -2,6 +2,10 @@ const { MESSAGES } = require('../constants/messages');
 const { createInlineKeyboard } = require('../../utils/keyboard');
 const Task = require('../../models/task.model');
 const TaskAssignmentService = require('../../services/task-assignment/task-assignment.service');
+const {
+  formatTaskSelectionList,
+  createTaskSelectionKeyboard
+} = require('../formatters/task-assignment.formatter');
 
 // User state management for assignment flow
 const assignmentStates = new Map();
@@ -20,30 +24,12 @@ module.exports = {
       // Get unassigned tasks using service
       const unassignedTasks = await TaskAssignmentService.getUnassignedTasks(userId);
       
-      if (unassignedTasks.length === 0) {
-        return await bot.sendMessage(
-          chatId,
-          MESSAGES.ASSIGNMENT.NO_TASKS
-        );
-      }
-      
-      // Create task selection keyboard
-      const taskButtons = unassignedTasks.map(task => [{
-        text: `📋 Task #${task._id.toString().slice(-4)}: ${task.title.substring(0, 30)}...`,
-        callback_data: `assign_task_${task._id}`
-      }]);
-      
-      // Add additional options
-      taskButtons.push([
-        { text: '🔍 Search Task by ID', callback_data: 'assign_search' },
-        { text: '❌ Cancel', callback_data: 'assign_cancel' }
-      ]);
-      
-      const keyboard = createInlineKeyboard(taskButtons);
+      const messageText = formatTaskSelectionList(unassignedTasks);
+      const keyboard = createTaskSelectionKeyboard(unassignedTasks);
       
       await bot.sendMessage(
         chatId,
-        MESSAGES.ASSIGNMENT.WELCOME,
+        messageText,
         { reply_markup: keyboard }
       );
       
