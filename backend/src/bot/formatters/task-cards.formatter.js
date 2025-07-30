@@ -161,14 +161,14 @@ const createTaskActionKeyboard = (taskId, currentStatus) => {
   const actionButtons = [
     [
       { text: "✅ Ready", callback_data: `task_status_ready_${shortId}` },
-      { text: "🔄 In Progress", callback_data: `task_status_progress_${shortId}` }
+      { text: "🔄 In Progress", callback_data: `task_status_in_progress_${shortId}` }
     ],
     [
       { text: "👀 Review", callback_data: `task_status_review_${shortId}` },
       { text: "✔️ Done", callback_data: `task_status_done_${shortId}` }
     ],
     [
-      { text: "🚧 Blocked", callback_data: `task_blocked_${shortId}` },
+      { text: "🚧 Blocked", callback_data: `blocker_add_${shortId}` },
       { text: "📊 History", callback_data: `status_history_${shortId}` }
     ]
   ];
@@ -177,7 +177,7 @@ const createTaskActionKeyboard = (taskId, currentStatus) => {
   actionButtons.forEach(row => {
     row.forEach(button => {
       const status = button.callback_data.split('_')[2];
-      if (status === currentStatus || (status === 'progress' && currentStatus === 'in_progress')) {
+      if (status === currentStatus || (status === 'in' && currentStatus === 'in_progress')) {
         button.text = `● ${button.text}`; // Mark current status
       }
     });
@@ -232,18 +232,118 @@ const createPaginationKeyboard = (filter, currentPage, totalPages) => {
   return { inline_keyboard: [buttons] };
 };
 
-// Format status update confirmation
-const formatStatusUpdate = (task, oldStatus, newStatus, statusMessage) => {
-  const urgencyIcon = getUrgencyIcon(task.deadline);
-  const priorityIcon = getPriorityIcon(task.priority);
+// Enhanced status update formatter  
+const formatStatusUpdate = (task, oldStatus, newStatus, changedBy) => {
+  const timestamp = new Date().toLocaleString();
+  const statusIcon = getStatusIcon(newStatus);
   
-  return `✅ Status Updated!
+  let message = `✅ Status Updated Successfully!\n\n`;
+  message += `📋 ${task.title}\n`;
+  message += `📊 Status: ${oldStatus} → ${newStatus}\n`;
+  message += `👤 Changed by: @${changedBy.username || 'Unknown'}\n`;
+  message += `⏰ ${timestamp}\n\n`;
+  message += getStatusSpecificMessage(newStatus, task);
 
-📋 *${task.title}*
-📊 Status: ${oldStatus} → ${newStatus}
-📅 ${formatDeadline(task.deadline)} | ${priorityIcon} ${task.priority}
+  return message;
+};
 
-${statusMessage}`;
+// Status-specific messages
+const getStatusSpecificMessage = (status, task) => {
+  switch (status) {
+    case 'ready':
+      return '🚀 Task is now ready for work to begin.';
+    case 'in_progress':
+      return '💪 Task is now in active development.\nTimer started for progress tracking.';
+    case 'review':
+      return '✨ Work completed and ready for review.\nReview requested from task creator.';
+    case 'done':
+      const duration = task.completedAt && task.startedAt 
+        ? formatDuration(new Date(task.completedAt) - new Date(task.startedAt))
+        : 'Unknown';
+      return `🎉 Task successfully completed!\nTotal time: ${duration}`;
+    case 'blocked':
+      return '⚠️ Task cannot proceed due to blockers.\nPlease add blocker details for resolution.';
+    default:
+      return '';
+  }
+};
+
+// Status history formatter
+const formatStatusHistory = (task) => {
+  const shortId = task._id.toString().slice(-6);
+  const createdDate = new Date(task.createdAt).toLocaleDateString();
+  
+  let message = `📊 Status History - ${task.title}\n\n`;
+  message += `📋 Task #${shortId}\n`;
+  message += `👤 Created by: @${task.createdBy?.username || 'Unknown'}\n`;
+  message += `📅 Created: ${createdDate}\n\n`;
+  message += `📊 Status Changes:`;
+
+  if (!task.statusHistory || task.statusHistory.length === 0) {
+    message += '\n📝 No status changes yet.\n\n';
+    message += `Current status: ${getStatusIcon(task.status)} ${task.status}`;
+    const currentDuration = new Date() - new Date(task.createdAt);
+    message += `\nDuration: ${formatDuration(currentDuration)}`;
+    return message;
+  }
+
+  // Format each status change
+  task.statusHistory.forEach((change, index) => {
+    const duration = formatDuration(change.duration || 0);
+    const timestamp = new Date(change.changedAt).toLocaleString();
+    
+    message += `\n• ${change.fromStatus} → ${change.toStatus}`;
+    message += `\n  👤 @${change.changedBy?.username || 'Unknown'} at ${timestamp}`;
+    if (change.duration) {
+      message += `\n  ⏱️ Duration: ${duration}`;
+    }
+    if (change.reason) {
+      message += `\n  📝 ${change.reason}`;
+    }
+    message += '\n';
+  });
+
+  // Add summary
+  const totalDuration = calculateTotalDuration(task.statusHistory);
+  message += `\n📈 Summary:`;
+  message += `\n⏱️ Total Duration: ${formatDuration(totalDuration)}`;
+  message += `\n🔄 Status Changes: ${task.statusHistory.length}`;
+  
+  return message;
+};
+
+// Progress indicator formatter
+const formatProgressIndicator = (status) => {
+  const statusFlow = ['pending', 'ready', 'in_progress', 'review', 'done'];
+  const currentIndex = statusFlow.indexOf(status);
+  
+  if (currentIndex === -1) return '🚧 Blocked'; // Handle blocked status
+  
+  const progress = Math.round((currentIndex / (statusFlow.length - 1)) * 100);
+  const progressBar = '█'.repeat(Math.floor(progress / 10)) + 
+                     '░'.repeat(10 - Math.floor(progress / 10));
+  
+  return `📊 Progress: ${progress}% [${progressBar}]`;
+};
+
+// Enhanced duration formatter
+const formatDuration = (milliseconds) => {
+  if (!milliseconds || milliseconds <= 0) return '0m';
+  
+  const minutes = Math.floor(milliseconds / (1000 * 60));
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  if (days > 0) return `${days}d ${hours % 24}h`;
+  if (hours > 0) return `${hours}h ${minutes % 60}m`;
+  return `${minutes}m`;
+};
+
+// Calculate total duration from status history
+const calculateTotalDuration = (statusHistory) => {
+  return statusHistory.reduce((total, change) => {
+    return total + (change.duration || 0);
+  }, 0);
 };
 
 module.exports = {
@@ -252,7 +352,11 @@ module.exports = {
   createTaskActionKeyboard,
   createFilterKeyboard,
   createPaginationKeyboard,
-  formatStatusUpdate,
+  formatStatusUpdate, // Enhanced function
+  formatStatusHistory, // New function
+  formatProgressIndicator, // New function
+  formatDuration, // Enhanced function
+  getStatusSpecificMessage, // New function
   getUrgencyIcon,
   getPriorityIcon,
   getStatusIcon,

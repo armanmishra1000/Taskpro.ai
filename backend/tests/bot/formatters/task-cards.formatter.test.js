@@ -98,7 +98,7 @@ describe('Task Cards Formatter', () => {
       });
       expect(keyboard.inline_keyboard[0]).toContainEqual({
         text: "🔄 In Progress", 
-        callback_data: "task_status_progress_439011"
+        callback_data: "task_status_in_progress_439011"
       });
     });
     
