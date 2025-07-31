@@ -50,7 +50,7 @@ Select a section to explore:`;
     
     // Add status breakdown
     Object.entries(activeTasks.statusBreakdown).forEach(([status, count]) => {
-      const statusEmoji = this.getStatusEmoji(status);
+      const statusEmoji = this.getStatusIcon(status);
       const statusName = this.formatStatusName(status);
       message += `${statusEmoji} ${statusName}: ${count} tasks\n`;
     });
@@ -59,7 +59,7 @@ Select a section to explore:`;
     
     // Add priority breakdown
     Object.entries(activeTasks.priorityBreakdown).forEach(([priority, count]) => {
-      const priorityEmoji = this.getPriorityEmoji(priority);
+      const priorityEmoji = this.getPriorityIcon(priority);
       const priorityName = this.formatPriorityName(priority);
       message += `${priorityEmoji} ${priorityName}: ${count} tasks\n`;
     });
@@ -69,10 +69,10 @@ Select a section to explore:`;
       recentTasks.slice(0, 5).forEach(task => {
         const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
         const dueDate = this.formatDueDate(task.deadline);
-        const statusEmoji = this.getStatusEmoji(task.status);
+        const statusIcon = this.getStatusIcon(task.status);
         message += `\n📌 ${task.title}\n`;
         message += `   👤 ${assignee} • Due: ${dueDate}\n`;
-        message += `   ${statusEmoji} ${this.formatStatusName(task.status)}\n`;
+        message += `   ${statusIcon} ${this.formatStatusName(task.status)}\n`;
       });
     }
     
@@ -80,7 +80,188 @@ Select a section to explore:`;
   }
 
   /**
-   * Create active tasks section keyboard
+   * Format velocity metrics with enhanced display
+   */
+  formatVelocityMetrics(velocityData) {
+    const { team, velocity, recentCompleted } = velocityData;
+    
+    let message = `📈 *Team Velocity Metrics*
+
+🏢 *Team:* ${team.name}
+
+⚡ *Current Velocity:* ${velocity.completionRate}%
+📊 *Tasks Completed:* ${velocity.totalCompleted} this week
+⏱️ *Avg Completion Time:* ${velocity.avgCompletionDays} days\n`;
+    
+    if (velocity.trend && velocity.trend.length > 0) {
+      const trend = this.calculateTrend(velocity.trend);
+      message += `📈 *Trend:* ${trend} vs last week\n`;
+    }
+    
+    if (recentCompleted && recentCompleted.length > 0) {
+      message += `\n🏆 *Recent Completions:*\n`;
+      recentCompleted.slice(0, 5).forEach(task => {
+        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
+        const completedDate = this.formatDate(task.completedAt);
+        message += `\n✅ ${task.title}\n`;
+        message += `   👤 ${assignee} • Completed: ${completedDate}\n`;
+      });
+    }
+    
+    // Add performance indicator
+    message += `\n📉 *Performance Indicator:*\n`;
+    if (velocity.completionRate >= 80) {
+      message += `✅ Team is performing well!`;
+    } else if (velocity.completionRate >= 60) {
+      message += `⚠️ Team velocity could be improved`;
+    } else {
+      message += `🚨 Team velocity needs attention`;
+    }
+    
+    return message;
+  }
+
+  /**
+   * Format blocker alerts with enhanced visual indicators
+   */
+  formatBlockerAlerts(blockersData) {
+    const { team, blockers } = blockersData;
+    
+    if (blockers.total === 0) {
+      return `🚧 *Active Blocker Alerts*
+
+🏢 *Team:* ${team.name}
+
+✅ No active blockers found!
+
+Your team is working smoothly without impediments.`;
+    }
+    
+    let message = `🚧 *Active Blocker Alerts*
+
+🏢 *Team:* ${team.name}
+
+⚠️ *${blockers.total} blockers requiring attention:*\n`;
+    
+    if (blockers.grouped.critical.length > 0) {
+      message += `\n🚨 *CRITICAL PRIORITY*\n`;
+      blockers.grouped.critical.forEach(task => {
+        const blocker = task.blockers.find(b => b.impact === 'critical' && b.status === 'active');
+        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
+        const reportedTime = this.formatTimeAgo(blocker.reportedAt);
+        const impactIcon = this.getImpactIcon(blocker.impact);
+        message += `📌 ${task.title}\n`;
+        message += `   👤 ${assignee} • Reported: ${reportedTime}\n`;
+        message += `   ${impactIcon} Impact: Critical\n`;
+        message += `   📝 "${blocker.attempts.substring(0, 100)}..."\n\n`;
+      });
+    }
+    
+    if (blockers.grouped.high.length > 0) {
+      message += `\n⚠️ *HIGH PRIORITY*\n`;
+      blockers.grouped.high.forEach(task => {
+        const blocker = task.blockers.find(b => b.impact === 'high' && b.status === 'active');
+        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
+        const reportedTime = this.formatTimeAgo(blocker.reportedAt);
+        const impactIcon = this.getImpactIcon(blocker.impact);
+        message += `📌 ${task.title}\n`;
+        message += `   👤 ${assignee} • Reported: ${reportedTime}\n`;
+        message += `   ${impactIcon} Impact: High\n`;
+        message += `   📝 "${blocker.attempts.substring(0, 100)}..."\n\n`;
+      });
+    }
+    
+    if (blockers.grouped.medium.length > 0) {
+      message += `\n⚠️ *MEDIUM PRIORITY*\n`;
+      blockers.grouped.medium.forEach(task => {
+        const blocker = task.blockers.find(b => b.impact === 'medium' && b.status === 'active');
+        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
+        const reportedTime = this.formatTimeAgo(blocker.reportedAt);
+        const impactIcon = this.getImpactIcon(blocker.impact);
+        message += `📌 ${task.title}\n`;
+        message += `   👤 ${assignee} • Reported: ${reportedTime}\n`;
+        message += `   ${impactIcon} Impact: Medium\n`;
+        message += `   📝 "${blocker.attempts.substring(0, 100)}..."\n\n`;
+      });
+    }
+    
+    message += `\n📊 *Blocker Stats:*\n`;
+    message += `Active: ${blockers.total} blockers\n`;
+    
+    return message;
+  }
+
+  /**
+   * Format overdue tasks warnings with enhanced urgency indicators
+   */
+  formatOverdueWarnings(overdueData) {
+    const { team, overdue } = overdueData;
+    
+    if (overdue.total === 0) {
+      return `⏰ *Overdue Tasks*
+
+🏢 *Team:* ${team.name}
+
+✅ Great job! No overdue tasks.
+
+Your team is staying on top of deadlines. Keep up the excellent work!`;
+    }
+    
+    let message = `⏰ *Overdue Task Warnings*
+
+🏢 *Team:* ${team.name}
+
+🚨 *${overdue.total} tasks require immediate attention:*\n`;
+    
+    if (overdue.grouped.critical.length > 0) {
+      message += `\n🔴 *CRITICAL - 3+ days overdue*\n`;
+      overdue.grouped.critical.forEach(task => {
+        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
+        const dueDate = this.formatDate(task.deadline);
+        const daysOverdue = Math.floor((new Date() - task.deadline) / (1000 * 60 * 60 * 24));
+        const urgencyIcon = this.getUrgencyIcon('critical');
+        message += `📌 ${task.title}\n`;
+        message += `   👤 ${assignee} • Due: ${dueDate} (${daysOverdue} days overdue)\n`;
+        message += `   ${urgencyIcon} ${task.goal}\n\n`;
+      });
+    }
+    
+    if (overdue.grouped.high.length > 0) {
+      message += `\n🟠 *HIGH - 1-2 days overdue*\n`;
+      overdue.grouped.high.forEach(task => {
+        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
+        const dueDate = this.formatDate(task.deadline);
+        const daysOverdue = Math.floor((new Date() - task.deadline) / (1000 * 60 * 60 * 24));
+        const urgencyIcon = this.getUrgencyIcon('high');
+        message += `📌 ${task.title}\n`;
+        message += `   👤 ${assignee} • Due: ${dueDate} (${daysOverdue} days overdue)\n`;
+        message += `   ${urgencyIcon} ${task.goal}\n\n`;
+      });
+    }
+    
+    if (overdue.grouped.medium.length > 0) {
+      message += `\n🟡 *MEDIUM - Due today*\n`;
+      overdue.grouped.medium.forEach(task => {
+        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
+        const dueDate = this.formatDate(task.deadline);
+        const urgencyIcon = this.getUrgencyIcon('medium');
+        message += `📌 ${task.title}\n`;
+        message += `   👤 ${assignee} • Due: ${dueDate}\n`;
+        message += `   ${urgencyIcon} ${task.goal}\n\n`;
+      });
+    }
+    
+    message += `\n📊 *Overdue Summary:*\n`;
+    message += `Total: ${overdue.total} tasks\n`;
+    message += `Critical: ${overdue.grouped.critical.length} tasks\n`;
+    message += `High: ${overdue.grouped.high.length} tasks\n`;
+    message += `Medium: ${overdue.grouped.medium.length} tasks\n`;
+    
+    return message;
+  }
+
+  /**
+   * Create section-specific keyboards
    */
   createSectionKeyboard(section) {
     const keyboards = {
@@ -116,7 +297,7 @@ Select a section to explore:`;
       
       overdue: createInlineKeyboard([
         [
-          { text: '🔴 Critical Overdue', callback_data: 'dashboard_critical_overdue' },
+          { text: '�� Critical Overdue', callback_data: 'dashboard_critical_overdue' },
           { text: '⏰ All Overdue', callback_data: 'dashboard_all_overdue' }
         ],
         [
@@ -128,153 +309,9 @@ Select a section to explore:`;
     return keyboards[section] || this.createDashboardKeyboard();
   }
 
-  /**
-   * Format velocity metrics
-   */
-  formatVelocityMetrics(velocityData) {
-    const { team, velocity, recentCompleted } = velocityData;
-    
-    let message = `📈 *Team Velocity Metrics*
-
-🏢 *Team:* ${team.name}
-
-⚡ *Current Velocity:* ${velocity.completionRate}%
-📊 *Tasks Completed:* ${velocity.totalCompleted} this week
-⏱️ *Avg Completion Time:* ${velocity.avgCompletionDays} days\n`;
-    
-    if (velocity.trend && velocity.trend.length > 0) {
-      message += `📈 *Trend:* ${this.calculateTrend(velocity.trend)} vs last week\n`;
-    }
-    
-    if (recentCompleted && recentCompleted.length > 0) {
-      message += `\n🏆 *Recent Completions:*\n`;
-      recentCompleted.slice(0, 5).forEach(task => {
-        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
-        const completedDate = new Date(task.completedAt).toLocaleDateString();
-        message += `\n✅ ${task.title}\n`;
-        message += `   👤 ${assignee} • Completed: ${completedDate}\n`;
-      });
-    }
-    
-    return message;
-  }
-
-  /**
-   * Format blocker alerts
-   */
-  formatBlockerAlerts(blockersData) {
-    const { team, blockers } = blockersData;
-    
-    let message = `🚧 *Active Blocker Alerts*
-
-🏢 *Team:* ${team.name}
-
-⚠️ *${blockers.total} blockers requiring attention:*\n`;
-    
-    if (blockers.grouped.critical.length > 0) {
-      message += `\n🚨 *CRITICAL PRIORITY*\n`;
-      blockers.grouped.critical.forEach(task => {
-        const blocker = task.blockers.find(b => b.impact === 'critical' && b.status === 'active');
-        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
-        const reportedTime = this.formatTimeAgo(blocker.reportedAt);
-        message += `📌 ${task.title}\n`;
-        message += `   👤 ${assignee} • Reported: ${reportedTime}\n`;
-        message += `   🔥 Impact: Critical\n`;
-        message += `   📝 "${blocker.attempts.substring(0, 100)}..."\n\n`;
-      });
-    }
-    
-    if (blockers.grouped.high.length > 0) {
-      message += `\n⚠️ *HIGH PRIORITY*\n`;
-      blockers.grouped.high.forEach(task => {
-        const blocker = task.blockers.find(b => b.impact === 'high' && b.status === 'active');
-        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
-        const reportedTime = this.formatTimeAgo(blocker.reportedAt);
-        message += `📌 ${task.title}\n`;
-        message += `   👤 ${assignee} • Reported: ${reportedTime}\n`;
-        message += `   🔥 Impact: High\n`;
-        message += `   📝 "${blocker.attempts.substring(0, 100)}..."\n\n`;
-      });
-    }
-    
-    if (blockers.grouped.medium.length > 0) {
-      message += `\n⚠️ *MEDIUM PRIORITY*\n`;
-      blockers.grouped.medium.forEach(task => {
-        const blocker = task.blockers.find(b => b.impact === 'medium' && b.status === 'active');
-        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
-        const reportedTime = this.formatTimeAgo(blocker.reportedAt);
-        message += `📌 ${task.title}\n`;
-        message += `   👤 ${assignee} • Reported: ${reportedTime}\n`;
-        message += `   🔥 Impact: Medium\n`;
-        message += `   📝 "${blocker.attempts.substring(0, 100)}..."\n\n`;
-      });
-    }
-    
-    message += `\n📊 *Blocker Stats:*\n`;
-    message += `Active: ${blockers.total} blockers\n`;
-    
-    return message;
-  }
-
-  /**
-   * Format overdue tasks warnings
-   */
-  formatOverdueWarnings(overdueData) {
-    const { team, overdue } = overdueData;
-    
-    let message = `⏰ *Overdue Task Warnings*
-
-🏢 *Team:* ${team.name}
-
-🚨 *${overdue.total} tasks require immediate attention:*\n`;
-    
-    if (overdue.grouped.critical.length > 0) {
-      message += `\n🔴 *CRITICAL - 3+ days overdue*\n`;
-      overdue.grouped.critical.forEach(task => {
-        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
-        const dueDate = new Date(task.deadline).toLocaleDateString();
-        const daysOverdue = Math.floor((new Date() - task.deadline) / (1000 * 60 * 60 * 24));
-        message += `📌 ${task.title}\n`;
-        message += `   👤 ${assignee} • Due: ${dueDate} (${daysOverdue} days overdue)\n`;
-        message += `   🎯 ${task.goal}\n\n`;
-      });
-    }
-    
-    if (overdue.grouped.high.length > 0) {
-      message += `\n🟠 *HIGH - 1-2 days overdue*\n`;
-      overdue.grouped.high.forEach(task => {
-        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
-        const dueDate = new Date(task.deadline).toLocaleDateString();
-        const daysOverdue = Math.floor((new Date() - task.deadline) / (1000 * 60 * 60 * 24));
-        message += `📌 ${task.title}\n`;
-        message += `   👤 ${assignee} • Due: ${dueDate} (${daysOverdue} days overdue)\n`;
-        message += `   🎯 ${task.goal}\n\n`;
-      });
-    }
-    
-    if (overdue.grouped.medium.length > 0) {
-      message += `\n🟡 *MEDIUM - Due today*\n`;
-      overdue.grouped.medium.forEach(task => {
-        const assignee = task.assignedTo ? `@${task.assignedTo.username || task.assignedTo.firstName}` : 'Unassigned';
-        const dueDate = new Date(task.deadline).toLocaleDateString();
-        message += `📌 ${task.title}\n`;
-        message += `   👤 ${assignee} • Due: ${dueDate}\n`;
-        message += `   🎯 ${task.goal}\n\n`;
-      });
-    }
-    
-    message += `\n📊 *Overdue Summary:*\n`;
-    message += `Total: ${overdue.total} tasks\n`;
-    message += `Critical: ${overdue.grouped.critical.length} tasks\n`;
-    message += `High: ${overdue.grouped.high.length} tasks\n`;
-    message += `Medium: ${overdue.grouped.medium.length} tasks\n`;
-    
-    return message;
-  }
-
-  // Helper methods
-  getStatusEmoji(status) {
-    const emojis = {
+  // Enhanced helper methods with visual indicators
+  getStatusIcon(status) {
+    const icons = {
       'pending': '⏳',
       'ready': '✅',
       'in_progress': '🔄',
@@ -282,7 +319,7 @@ Select a section to explore:`;
       'done': '🎉',
       'blocked': '🚧'
     };
-    return emojis[status] || '📋';
+    return icons[status] || '📋';
   }
 
   formatStatusName(status) {
@@ -297,14 +334,14 @@ Select a section to explore:`;
     return names[status] || status;
   }
 
-  getPriorityEmoji(priority) {
-    const emojis = {
+  getPriorityIcon(priority) {
+    const icons = {
       'low': '🟢',
       'medium': '🟡',
       'high': '🟠',
       'critical': '🔴'
     };
-    return emojis[priority] || '📋';
+    return icons[priority] || '📋';
   }
 
   formatPriorityName(priority) {
@@ -315,6 +352,25 @@ Select a section to explore:`;
       'critical': 'Critical'
     };
     return names[priority] || priority;
+  }
+
+  getImpactIcon(impact) {
+    const icons = {
+      'critical': '🚨',
+      'high': '⚠️',
+      'medium': '🟡',
+      'low': '🟢'
+    };
+    return icons[impact] || '⚠️';
+  }
+
+  getUrgencyIcon(urgency) {
+    const icons = {
+      'critical': '🔴',
+      'high': '🟠',
+      'medium': '🟡'
+    };
+    return icons[urgency] || '🟡';
   }
 
   formatDueDate(deadline) {
@@ -334,7 +390,7 @@ Select a section to explore:`;
     } else if (diffDays <= 7) {
       return `In ${diffDays} days`;
     } else {
-      return due.toLocaleDateString();
+      return this.formatDate(deadline);
     }
   }
 
@@ -348,12 +404,19 @@ Select a section to explore:`;
     if (diffHours < 1) {
       return 'Just now';
     } else if (diffHours < 24) {
-      return `${diffHours} hours ago`;
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     } else if (diffDays === 1) {
       return '1 day ago';
     } else {
       return `${diffDays} days ago`;
     }
+  }
+
+  formatDate(date) {
+    return new Date(date).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
   }
 
   calculateTrend(trendData) {

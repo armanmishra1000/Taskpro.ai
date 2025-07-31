@@ -60,7 +60,22 @@ module.exports = {
       NO_DATA: '📊 *No Active Tasks Found*\n\nYour team is either:\n• All caught up with current work\n• Ready for new task assignments\n\nUse /newtask to create new tasks or check /cards for completed items.',
       DATA_ERROR: '❌ I couldn\'t access the dashboard data.\nPlease ensure you have manager permissions and try again.',
       REFRESH_SUCCESS: '✅ Dashboard data refreshed!\n\nUpdated: {timestamp}\nAll metrics reflect current team status.',
-      NAVIGATION_SUCCESS: '📊 Navigating to {section}...\nLoading latest data for your team.'
+      NAVIGATION_SUCCESS: '📊 Navigating to {section}...\nLoading latest data for your team.',
+      PERMISSION_DENIED: `❌ *Dashboard Access Restricted*
+
+This feature is only available to team managers and administrators.
+
+Current permissions: Member
+Required permissions: Manager or Admin
+
+Contact your team admin to request elevated permissions.`,
+      NO_TEAM_DATA: `📊 *No Team Data Available*
+
+You don't appear to be part of any active teams.
+
+Use /team to create or join a team first, then return to the dashboard.`,
+      TEMPORARY_ERROR: `❌ Dashboard data temporarily unavailable.
+Please try refreshing in a few moments.`
     }
   }
 }; 
